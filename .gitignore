@@ -130,3 +130,5 @@ MNIST
 *.png
 *.jpg
 /data
+/notebooks/colab_version
+
