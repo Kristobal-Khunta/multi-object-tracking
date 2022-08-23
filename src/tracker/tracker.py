@@ -80,3 +80,6 @@ class Track(object):
 		self.id = track_id
 		self.box = box
 		self.score = score
+	
+	def __repr__(self):
+		return f'track_id = {self.id} score = {self.score:.2f} bbox = {self.box}'
