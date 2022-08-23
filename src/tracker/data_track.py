@@ -9,9 +9,10 @@ from torch.utils.data import Dataset
 from torchvision.transforms import ToTensor
 
 _sets = {}
+
 # Fill all available datasets, change here to modify / add new datasets.
 for split in ['train', 'test', 'all', '01', '02', '03', '04', '05', '06', '07', '08', '09',
-              '10', '11', '12', '13', '14','reid']:
+              '10', '11', '12', '13', '14', 'reid']:
     name = f'MOT16-{split}'
     _sets[name] = (lambda root_dir, split=split, **kwargs: MOT16(root_dir, split, **kwargs))
 
@@ -39,7 +40,7 @@ class MOT16Sequences():
         assert dataset in _sets, "[!] Dataset not found: {}".format(dataset)
 
         self._data = _sets[dataset](root_dir, **kwargs)
-        
+
     def __len__(self):
         return len(self._data)
 
@@ -76,8 +77,6 @@ class MOT16(Dataset):
             raise NotImplementedError("MOT split not available.")
 
         self._data = []
-        print('in MOT16 dataset')
-        print('sequences',sequences)
         for s in sequences:
             self._data.append(MOT16Sequence(root_dir, seq_name=s, **kwargs))
 
