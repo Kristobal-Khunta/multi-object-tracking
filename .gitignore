@@ -131,4 +131,4 @@ MNIST
 *.jpg
 /data
 /notebooks/colab_version
-
+*.txt
