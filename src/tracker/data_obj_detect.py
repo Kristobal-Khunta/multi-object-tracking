@@ -2,11 +2,9 @@ import configparser
 import csv
 import os
 import os.path as osp
-import pickle
 
 from PIL import Image
 import numpy as np
-import scipy
 import torch
 
 
