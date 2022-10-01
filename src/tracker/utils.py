@@ -17,6 +17,8 @@ from cycler import cycler as cy
 from scipy.interpolate import interp1d
 from torchvision.transforms import functional as F
 from tqdm.auto import tqdm
+import time
+import copy
 
 colors = [
     'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque',
@@ -99,8 +101,10 @@ def plot_sequence(tracks, db, first_n_frames=None):
 def get_mot_accum(results, seq):
     mot_accum = mm.MOTAccumulator(auto_id=True)
 
-    for i, data in enumerate(seq):
-        gt = data['gt']
+    #for i, data in enumerate(seq):
+    for i in range(len(seq)):
+        #data = self.data[idx]
+        gt = seq.data[i]['gt']
         gt_ids = []
         if gt:
             gt_boxes = []
@@ -161,6 +165,7 @@ def evaluate_mot_accums(accums, names, generate_overall=False):
         namemap=mm.io.motchallenge_metric_names,
     )
     print(str_summary)
+    return summary
 
 
 def evaluate_obj_detect(model, data_loader):
@@ -235,3 +240,71 @@ class ToTensor(object):
     def __call__(self, image, target):
         image = F.to_tensor(image)
         return image, target
+
+
+
+#####
+def run_tracker(val_sequences, db, tracker, output_dir=None):
+    time_total = 0
+    mot_accums = []
+    results_seq = {}
+    for seq in val_sequences:
+        #break
+        tracker.reset()
+        now = time.time()
+
+        print(f"Tracking: {seq}")
+
+        #data_loader = DataLoader(seq, batch_size=1, shuffle=False)
+        with torch.no_grad():
+            #for i, frame in enumerate(tqdm(data_loader)):
+            for frame in db[str(seq)]:                
+                tracker.step(frame)
+
+
+        results = tracker.get_results()
+        results_seq[str(seq)] = results
+
+        if seq.no_gt:
+            print(f"No GT evaluation data available.")
+        else:
+            mot_accums.append(get_mot_accum(results, seq))
+
+        time_total += time.time() - now
+
+        print(f"Tracks found: {len(results)}")
+        print(f"Runtime for {seq}: {time.time() - now:.1f} s.")
+
+        if output_dir is not None:
+            os.makedirs(output_dir, exist_ok=True)
+            seq.write_results(results, os.path.join(output_dir))
+
+
+    print(f"Runtime for all sequences: {time_total:.1f} s.")
+    if mot_accums:
+        return evaluate_mot_accums(mot_accums,
+                            [str(s) for s in val_sequences if not s.no_gt],
+                            generate_overall=True)
+
+
+
+def cosine_distance(input1, input2):
+    """Computes cosine distance.
+    Args:
+        input1 (torch.Tensor): 2-D feature matrix.
+        input2 (torch.Tensor): 2-D feature matrix.
+    Returns:
+        torch.Tensor: distance matrix.
+    """
+    input1_normed = torch.nn.functional.normalize(input1, p=2, dim=1)
+    input2_normed = torch.nn.functional.normalize(input2, p=2, dim=1)
+    distmat = 1 - torch.mm(input1_normed, input2_normed.t())
+    return distmat
+
+
+def ltrb_to_ltwh(ltrb_boxes):
+    ltwh_boxes = copy.deepcopy(ltrb_boxes)
+    ltwh_boxes[:, 2] = ltrb_boxes[:, 2] - ltrb_boxes[:, 0]
+    ltwh_boxes[:, 3] = ltrb_boxes[:, 3] - ltrb_boxes[:, 1]
+
+    return ltwh_boxes
