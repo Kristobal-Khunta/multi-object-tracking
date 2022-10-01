@@ -12,7 +12,7 @@ _sets = {}
 
 # Fill all available datasets, change here to modify / add new datasets.
 for split in ['train', 'test', 'all', '01', '02', '03', '04', '05', '06', '07', '08', '09',
-              '10', '11', '12', '13', '14', 'reid']:
+              '10', '11', '12', '13', '14', 'reid', 'train_wo_val', 'train_wo_val2', 'val', 'val2']:
     name = f'MOT16-{split}'
     _sets[name] = (lambda root_dir, split=split, **kwargs: MOT16(root_dir, split, **kwargs))
 
@@ -61,7 +61,11 @@ class MOT16(Dataset):
         """
         train_sequences = list(listdir_nohidden(
             os.path.join(root_dir, 'train')))
-        test_sequences = list(listdir_nohidden(os.path.join(root_dir, 'test')))
+        #test_sequences = list(listdir_nohidden(os.path.join(root_dir, 'test')))
+        #test_sequences = ['MOT16-01', 'MOT16-03', 'MOT16-08', 'MOT16-12']
+        test_sequences = ['MOT16-01', 'MOT16-08', 'MOT16-12']
+        val_sequences = ["MOT16-02", "MOT16-05", "MOT16-09", "MOT16-11"]
+        val_sequences2 = ["MOT16-02", "MOT16-11"]
 
         if "train" == split:
             sequences = train_sequences
@@ -71,6 +75,18 @@ class MOT16(Dataset):
             sequences = train_sequences + test_sequences
         elif "reid" == split:
             sequences = ["MOT16-02", "MOT16-05", "MOT16-09", "MOT16-11"]
+        elif "train_wo_val" == split:
+            sequences = [seq for seq in train_sequences if seq not in val_sequences]
+
+        elif "train_wo_val2" == split:
+            sequences = [seq for seq in train_sequences if seq not in val_sequences2]
+
+        elif "val" == split:
+            sequences = val_sequences
+
+        elif "val2" == split:
+            sequences = val_sequences2
+
         elif f"MOT16-{split}" in train_sequences + test_sequences:
             sequences = [f"MOT16-{split}"]
         else:
