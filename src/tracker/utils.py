@@ -5,45 +5,168 @@
 import os
 import random
 from collections import defaultdict
-from os import path as osp
 
-import cv2
-import matplotlib
 import matplotlib.pyplot as plt
 import motmetrics as mm
 import numpy as np
 import torch
 from cycler import cycler as cy
-from scipy.interpolate import interp1d
 from torchvision.transforms import functional as F
 from tqdm.auto import tqdm
 import time
 import copy
 
 colors = [
-    'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque',
-    'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue',
-    'chartreuse', 'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan',
-    'darkblue', 'darkcyan', 'darkgoldenrod', 'darkgray', 'darkgreen', 'darkgrey', 'darkkhaki',
-    'darkmagenta', 'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon',
-    'darkseagreen', 'darkslateblue', 'darkslategray', 'darkslategrey', 'darkturquoise',
-    'darkviolet', 'deeppink', 'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick',
-    'floralwhite', 'forestgreen', 'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod',
-    'gray', 'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred', 'indigo',
-    'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen', 'lemonchiffon', 'lightblue',
-    'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgray', 'lightgreen', 'lightgrey',
-    'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue', 'lightslategray', 'lightslategrey',
-    'lightsteelblue', 'lightyellow', 'lime', 'limegreen', 'linen', 'magenta', 'maroon',
-    'mediumaquamarine', 'mediumblue', 'mediumorchid', 'mediumpurple', 'mediumseagreen',
-    'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred', 'midnightblue',
-    'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy', 'oldlace', 'olive', 'olivedrab',
-    'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen', 'paleturquoise',
-    'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue',
-    'purple', 'rebeccapurple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon',
-    'sandybrown', 'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue',
-    'slategray', 'slategrey', 'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle',
-    'tomato', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'
+    "aliceblue",
+    "antiquewhite",
+    "aqua",
+    "aquamarine",
+    "azure",
+    "beige",
+    "bisque",
+    "black",
+    "blanchedalmond",
+    "blue",
+    "blueviolet",
+    "brown",
+    "burlywood",
+    "cadetblue",
+    "chartreuse",
+    "chocolate",
+    "coral",
+    "cornflowerblue",
+    "cornsilk",
+    "crimson",
+    "cyan",
+    "darkblue",
+    "darkcyan",
+    "darkgoldenrod",
+    "darkgray",
+    "darkgreen",
+    "darkgrey",
+    "darkkhaki",
+    "darkmagenta",
+    "darkolivegreen",
+    "darkorange",
+    "darkorchid",
+    "darkred",
+    "darksalmon",
+    "darkseagreen",
+    "darkslateblue",
+    "darkslategray",
+    "darkslategrey",
+    "darkturquoise",
+    "darkviolet",
+    "deeppink",
+    "deepskyblue",
+    "dimgray",
+    "dimgrey",
+    "dodgerblue",
+    "firebrick",
+    "floralwhite",
+    "forestgreen",
+    "fuchsia",
+    "gainsboro",
+    "ghostwhite",
+    "gold",
+    "goldenrod",
+    "gray",
+    "green",
+    "greenyellow",
+    "grey",
+    "honeydew",
+    "hotpink",
+    "indianred",
+    "indigo",
+    "ivory",
+    "khaki",
+    "lavender",
+    "lavenderblush",
+    "lawngreen",
+    "lemonchiffon",
+    "lightblue",
+    "lightcoral",
+    "lightcyan",
+    "lightgoldenrodyellow",
+    "lightgray",
+    "lightgreen",
+    "lightgrey",
+    "lightpink",
+    "lightsalmon",
+    "lightseagreen",
+    "lightskyblue",
+    "lightslategray",
+    "lightslategrey",
+    "lightsteelblue",
+    "lightyellow",
+    "lime",
+    "limegreen",
+    "linen",
+    "magenta",
+    "maroon",
+    "mediumaquamarine",
+    "mediumblue",
+    "mediumorchid",
+    "mediumpurple",
+    "mediumseagreen",
+    "mediumslateblue",
+    "mediumspringgreen",
+    "mediumturquoise",
+    "mediumvioletred",
+    "midnightblue",
+    "mintcream",
+    "mistyrose",
+    "moccasin",
+    "navajowhite",
+    "navy",
+    "oldlace",
+    "olive",
+    "olivedrab",
+    "orange",
+    "orangered",
+    "orchid",
+    "palegoldenrod",
+    "palegreen",
+    "paleturquoise",
+    "palevioletred",
+    "papayawhip",
+    "peachpuff",
+    "peru",
+    "pink",
+    "plum",
+    "powderblue",
+    "purple",
+    "rebeccapurple",
+    "red",
+    "rosybrown",
+    "royalblue",
+    "saddlebrown",
+    "salmon",
+    "sandybrown",
+    "seagreen",
+    "seashell",
+    "sienna",
+    "silver",
+    "skyblue",
+    "slateblue",
+    "slategray",
+    "slategrey",
+    "snow",
+    "springgreen",
+    "steelblue",
+    "tan",
+    "teal",
+    "thistle",
+    "tomato",
+    "turquoise",
+    "violet",
+    "wheat",
+    "white",
+    "whitesmoke",
+    "yellow",
+    "yellowgreen",
 ]
+
 
 def plot_sequence(tracks, db, first_n_frames=None):
     """Plots a whole sequence
@@ -59,12 +182,12 @@ def plot_sequence(tracks, db, first_n_frames=None):
     # 	os.makedirs(output_dir)
 
     # infinite color loop
-    cyl = cy('ec', colors)
+    cyl = cy("ec", colors)
     loop_cy_iter = cyl()
     styles = defaultdict(lambda: next(loop_cy_iter))
 
     for i, v in enumerate(db):
-        img = v['img'].mul(255).permute(1, 2, 0).byte().numpy()
+        img = v["img"].mul(255).permute(1, 2, 0).byte().numpy()
         width, height, _ = img.shape
 
         dpi = 96
@@ -82,13 +205,25 @@ def plot_sequence(tracks, db, first_n_frames=None):
                         t_i[2] - t_i[0],
                         t_i[3] - t_i[1],
                         fill=False,
-                        linewidth=1.0, **styles[j]
-                    ))
+                        linewidth=1.0,
+                        **styles[j],
+                    )
+                )
 
-                ax.annotate(j, (t_i[0] + (t_i[2] - t_i[0]) / 2.0, t_i[1] + (t_i[3] - t_i[1]) / 2.0),
-                            color=styles[j]['ec'], weight='bold', fontsize=6, ha='center', va='center')
+                ax.annotate(
+                    j,
+                    (
+                        t_i[0] + (t_i[2] - t_i[0]) / 2.0,
+                        t_i[1] + (t_i[3] - t_i[1]) / 2.0,
+                    ),
+                    color=styles[j]["ec"],
+                    weight="bold",
+                    fontsize=6,
+                    ha="center",
+                    va="center",
+                )
 
-        plt.axis('off')
+        plt.axis("off")
         # plt.tight_layout()
         plt.show()
         # plt.savefig(im_output, dpi=100)
@@ -101,10 +236,10 @@ def plot_sequence(tracks, db, first_n_frames=None):
 def get_mot_accum(results, seq):
     mot_accum = mm.MOTAccumulator(auto_id=True)
 
-    #for i, data in enumerate(seq):
+    # for i, data in enumerate(seq):
     for i in range(len(seq)):
-        #data = self.data[idx]
-        gt = seq.data[i]['gt']
+        # data = self.data[idx]
+        gt = seq.data[i]["gt"]
         gt_ids = []
         if gt:
             gt_boxes = []
@@ -114,11 +249,15 @@ def get_mot_accum(results, seq):
 
             gt_boxes = np.stack(gt_boxes, axis=0)
             # x1, y1, x2, y2 --> x1, y1, width, height
-            gt_boxes = np.stack((gt_boxes[:, 0],
-                                 gt_boxes[:, 1],
-                                 gt_boxes[:, 2] - gt_boxes[:, 0],
-                                 gt_boxes[:, 3] - gt_boxes[:, 1]),
-                                axis=1)
+            gt_boxes = np.stack(
+                (
+                    gt_boxes[:, 0],
+                    gt_boxes[:, 1],
+                    gt_boxes[:, 2] - gt_boxes[:, 0],
+                    gt_boxes[:, 3] - gt_boxes[:, 1],
+                ),
+                axis=1,
+            )
         else:
             gt_boxes = np.array([])
 
@@ -133,20 +272,21 @@ def get_mot_accum(results, seq):
         if track_ids:
             track_boxes = np.stack(track_boxes, axis=0)
             # x1, y1, x2, y2 --> x1, y1, width, height
-            track_boxes = np.stack((track_boxes[:, 0],
-                                    track_boxes[:, 1],
-                                    track_boxes[:, 2] - track_boxes[:, 0],
-                                    track_boxes[:, 3] - track_boxes[:, 1]),
-                                    axis=1)
+            track_boxes = np.stack(
+                (
+                    track_boxes[:, 0],
+                    track_boxes[:, 1],
+                    track_boxes[:, 2] - track_boxes[:, 0],
+                    track_boxes[:, 3] - track_boxes[:, 1],
+                ),
+                axis=1,
+            )
         else:
             track_boxes = np.array([])
 
         distance = mm.distances.iou_matrix(gt_boxes, track_boxes, max_iou=0.5)
 
-        mot_accum.update(
-            gt_ids,
-            track_ids,
-            distance)
+        mot_accum.update(gt_ids, track_ids, distance)
 
     return mot_accum
 
@@ -157,7 +297,8 @@ def evaluate_mot_accums(accums, names, generate_overall=False):
         accums,
         metrics=mm.metrics.motchallenge_metrics,
         names=names,
-        generate_overall=generate_overall)
+        generate_overall=generate_overall,
+    )
 
     str_summary = mm.io.render_summary(
         summary,
@@ -179,8 +320,10 @@ def evaluate_obj_detect(model, data_loader):
             preds = model(imgs)
 
         for pred, target in zip(preds, targets):
-            results[target['image_id'].item()] = {'boxes': pred['boxes'].cpu(),
-                                                  'scores': pred['scores'].cpu()}
+            results[target["image_id"].item()] = {
+                "boxes": pred["boxes"].cpu(),
+                "scores": pred["scores"].cpu(),
+            }
 
     data_loader.dataset.print_eval(results)
 
@@ -242,31 +385,29 @@ class ToTensor(object):
         return image, target
 
 
-
 #####
 def run_tracker(val_sequences, db, tracker, output_dir=None):
     time_total = 0
     mot_accums = []
     results_seq = {}
     for seq in val_sequences:
-        #break
+        # break
         tracker.reset()
         now = time.time()
 
         print(f"Tracking: {seq}")
 
-        #data_loader = DataLoader(seq, batch_size=1, shuffle=False)
+        # data_loader = DataLoader(seq, batch_size=1, shuffle=False)
         with torch.no_grad():
-            #for i, frame in enumerate(tqdm(data_loader)):
-            for frame in db[str(seq)]:                
+            # for i, frame in enumerate(tqdm(data_loader)):
+            for frame in db[str(seq)]:
                 tracker.step(frame)
-
 
         results = tracker.get_results()
         results_seq[str(seq)] = results
 
         if seq.no_gt:
-            print(f"No GT evaluation data available.")
+            print("No GT evaluation data available.")
         else:
             mot_accums.append(get_mot_accum(results, seq))
 
@@ -279,13 +420,13 @@ def run_tracker(val_sequences, db, tracker, output_dir=None):
             os.makedirs(output_dir, exist_ok=True)
             seq.write_results(results, os.path.join(output_dir))
 
-
     print(f"Runtime for all sequences: {time_total:.1f} s.")
     if mot_accums:
-        return evaluate_mot_accums(mot_accums,
-                            [str(s) for s in val_sequences if not s.no_gt],
-                            generate_overall=True)
-
+        return evaluate_mot_accums(
+            mot_accums,
+            [str(s) for s in val_sequences if not s.no_gt],
+            generate_overall=True,
+        )
 
 
 def cosine_distance(input1, input2):
