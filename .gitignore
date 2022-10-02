@@ -129,5 +129,7 @@ MNIST
 *.png
 *.jpg
 /data/MOT16/
+/data/market/
+/data/data*
 /notebooks/colab_version
 *.txt
