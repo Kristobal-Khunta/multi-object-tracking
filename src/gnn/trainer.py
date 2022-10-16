@@ -1,6 +1,5 @@
-import tqdm
 import torch
-from torch import nn
+import tqdm
 from torch.nn import functional as F
 
 
