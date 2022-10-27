@@ -1,17 +1,8 @@
-import os
-import random
-from collections import defaultdict
-
-import matplotlib.pyplot as plt
-import motmetrics as mm
-import numpy as np
-import torch
-from cycler import cycler as cy
-from torchvision.transforms import functional as F
-from tqdm.auto import tqdm
-import time
-import copy
 import gif
+import matplotlib.pyplot as plt
+from cycler import cycler as cy
+from tqdm.auto import tqdm
+from collections import defaultdict
 
 
 colors = [
@@ -279,6 +270,6 @@ def collect_frames_for_gif(sequence, tracker_seq_res, first_n_frames=None):
 
         frame = plot_single_tracked_frame(img, img_idx, tracker_seq_res)
         frames.append(frame)
-        if first_n_frames is not None and first_n_frames - 1 == i:
+        if first_n_frames is not None and first_n_frames - 1 == img_idx:
             break
     return frames

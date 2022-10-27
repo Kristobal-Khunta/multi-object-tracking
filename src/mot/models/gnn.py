@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from tracker.utils import ltrb_to_xcycwh, cosine_distance
+from ..utils import ltrb_to_xcycwh, cosine_distance
 
 
 class BipartiteNeuralMessagePassingLayer(nn.Module):
