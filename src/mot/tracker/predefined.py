@@ -3,8 +3,8 @@ import numpy as np
 import torch
 from scipy.optimize import linear_sum_assignment as linear_assignment
 
-from tracker.base_tracker import Track, Tracker
-from tracker.utils import cosine_distance, ltrb_to_ltwh
+from tracker.base import Track, Tracker
+from mot.utils import cosine_distance, ltrb_to_ltwh
 import market.metrics as metrics
 
 mm.lap.default_solver = "lap"
