@@ -134,3 +134,4 @@ MNIST
 /notebooks/colab_version
 *.txt
 *.pth
+*.gif 
