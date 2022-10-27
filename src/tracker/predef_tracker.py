@@ -21,6 +21,7 @@ class ReIDPredefTracker(Tracker):
             self.tracks.append(
                 Track(new_boxes[i], new_scores[i], self.track_num + i, new_features[i])
             )
+            
         self.track_num += num_new
 
     def reset(self, hard=True):
