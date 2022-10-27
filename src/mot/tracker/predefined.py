@@ -21,7 +21,7 @@ class ReIDPredefTracker(Tracker):
             self.tracks.append(
                 Track(new_boxes[i], new_scores[i], self.track_num + i, new_features[i])
             )
-            
+
         self.track_num += num_new
 
     def reset(self, hard=True):
@@ -199,6 +199,7 @@ class LongTermReIDHungarianPredefTracker(ReIDPredefHungarianTracker):
 
 ############
 
+
 class MPNTracker(LongTermReIDHungarianPredefTracker):
     def __init__(self, assign_net, *args, **kwargs):
         self.assign_net = assign_net
@@ -231,7 +232,7 @@ class MPNTracker(LongTermReIDHungarianPredefTracker):
             pred_sim = torch.sigmoid(edges_raw_logits).detach().cpu().numpy()
             pred_sim = pred_sim[-1]  # Use predictions at last message passing step
             distance = 1 - pred_sim
-            #print(pred_sim)
+            # bprint(pred_sim)
             # Do not allow mataches when sim < 0.5, to avoid low-confident associations
             distance = np.where(pred_sim < 0.5, _UNMATCHED_COST, distance)
 

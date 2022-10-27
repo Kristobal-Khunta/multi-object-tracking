@@ -3,9 +3,6 @@ import collections
 import motmetrics as mm
 import numpy as np
 import torch
-import torch.nn.functional as F
-import torchvision.transforms.functional as TF
-import market.metrics as metrics
 
 mm.lap.default_solver = "lap"
 

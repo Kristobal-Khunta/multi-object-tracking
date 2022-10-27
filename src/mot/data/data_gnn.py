@@ -1,5 +1,4 @@
 import itertools
-import sys
 import torch
 from torch.utils.data import Dataset
 from .data_seq import MOT16Sequences

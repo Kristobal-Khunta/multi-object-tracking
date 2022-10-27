@@ -1,3 +1,6 @@
+import random
+from torchvision.transforms import functional as F
+
 
 def obj_detect_transforms(train):
     transforms = []

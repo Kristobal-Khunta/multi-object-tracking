@@ -1,5 +1,3 @@
-import collections
-
 import motmetrics as mm
 import numpy as np
 import torch

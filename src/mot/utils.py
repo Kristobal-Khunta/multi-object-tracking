@@ -2,18 +2,8 @@
 # Still ugly file with helper functions #
 #########################################
 
-import os
-import random
-from collections import defaultdict
 
-import matplotlib.pyplot as plt
-import motmetrics as mm
-import numpy as np
 import torch
-from cycler import cycler as cy
-from torchvision.transforms import functional as F
-from tqdm.auto import tqdm
-import time
 import copy
 
 
@@ -46,4 +36,3 @@ def ltrb_to_xcycwh(ltrb_boxes):
     xcycwh[:, 2] = ltrb_boxes[:, 2] - ltrb_boxes[:, 0]
     xcycwh[:, 3] = ltrb_boxes[:, 3] - ltrb_boxes[:, 1]
     return xcycwh
-

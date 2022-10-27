@@ -1,18 +1,9 @@
-
-
 import os
-import random
-from collections import defaultdict
-
-import matplotlib.pyplot as plt
 import motmetrics as mm
 import numpy as np
 import torch
-from cycler import cycler as cy
-from torchvision.transforms import functional as F
 from tqdm.auto import tqdm
 import time
-import copy
 
 
 def get_mot_accum(results, seq):
