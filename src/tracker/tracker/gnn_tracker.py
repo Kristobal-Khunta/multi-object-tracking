@@ -3,7 +3,7 @@ import torch.nn as nn
 import numpy as np
 from scipy.optimize import linear_sum_assignment as linear_assignment
 
-from tracker.predef_tracker import LongTermReIDHungarianPredefTracker
+from tracker.tracker.predef_tracker import LongTermReIDHungarianPredefTracker
 
 
 _UNMATCHED_COST = 255
