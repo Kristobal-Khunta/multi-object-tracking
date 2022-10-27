@@ -110,7 +110,6 @@ def evaluate_obj_detect(model, data_loader):
     data_loader.dataset.print_eval(results)
 
 
-
 #####
 def run_tracker(val_sequences, db, tracker, output_dir=None):
     time_total = 0
@@ -153,4 +152,3 @@ def run_tracker(val_sequences, db, tracker, output_dir=None):
             [str(s) for s in val_sequences if not s.no_gt],
             generate_overall=True,
         )
-
