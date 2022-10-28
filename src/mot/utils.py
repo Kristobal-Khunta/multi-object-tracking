@@ -1,10 +1,19 @@
-#########################################
-# Still ugly file with helper functions #
-#########################################
 
 
 import torch
 import copy
+
+
+def euclidean_squared_distance(input1, input2):
+    """Computes euclidean squared distance.
+    Args:
+        input1 (torch.Tensor): 2-D feature matrix.
+        input2 (torch.Tensor): 2-D feature matrix.
+    Returns:
+        torch.Tensor: distance matrix.
+    """
+    distmat = torch.cdist(input1, input2, p=2.0)
+    return distmat**2
 
 
 def cosine_distance(input1, input2):
