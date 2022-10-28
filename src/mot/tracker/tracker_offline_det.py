@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from scipy.optimize import linear_sum_assignment as linear_assignment
 
-from tracker.base import Track, Tracker
+from mot.tracker.base import Track, Tracker
 from mot.utils import cosine_distance, ltrb_to_ltwh
 import market.metrics as metrics
 
@@ -27,6 +27,10 @@ class TrackerOfflineDet(Tracker):
 
 
 class ReIDTrackerOfflineDet(TrackerOfflineDet):
+    def __init__(self, unmatched_cost=255.0, *args, **kwargs):
+        self._UNMATCHED_COST = unmatched_cost
+        super().__init__(*args, **kwargs)
+
     def add(self, new_boxes, new_scores, new_features):
         """Initializes new Track objects and saves them."""
         num_new = len(new_boxes)
@@ -64,7 +68,6 @@ class ReIDTrackerOfflineDet(TrackerOfflineDet):
     def compute_distance_matrix(
         self, track_features, pred_features, track_boxes, boxes, metric_fn, alpha=0.0
     ):
-        UNMATCHED_COST = 255.0
 
         # Build cost matrix.
         distance = mm.distances.iou_matrix(
@@ -83,9 +86,9 @@ class ReIDTrackerOfflineDet(TrackerOfflineDet):
         combined_costs = alpha * distance + (1 - alpha) * appearance_distance
 
         # Set all unmatched costs to _UNMATCHED_COST.
-        distance = np.where(np.isnan(distance), UNMATCHED_COST, combined_costs)
+        distance = np.where(np.isnan(distance), self._UNMATCHED_COST, combined_costs)
 
-        distance = np.where(appearance_distance > 0.1, UNMATCHED_COST, distance)
+        distance = np.where(appearance_distance > 0.1, self._UNMATCHED_COST, distance)
 
         return distance
 
