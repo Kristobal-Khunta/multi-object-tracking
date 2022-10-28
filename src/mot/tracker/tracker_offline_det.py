@@ -3,17 +3,31 @@ import numpy as np
 import torch
 from scipy.optimize import linear_sum_assignment as linear_assignment
 
-from tracker.base import Track, Tracker
+from mot.tracker.base import Track, Tracker
 from mot.utils import cosine_distance, ltrb_to_ltwh
 import market.metrics as metrics
 
 mm.lap.default_solver = "lap"
 
 
-_UNMATCHED_COST = 255
+class TrackerOfflineDet(Tracker):
+    def step(self, frame):
+        """This function should be called every timestep to perform tracking with a blob
+        containing the image information.
+        """
+
+        # if predefined detections
+        boxes = frame["det"]["boxes"]
+        scores = frame["det"]["scores"]
+        self.data_association(boxes, scores)
+        self.update_results()
 
 
-class ReIDPredefTracker(Tracker):
+class ReIDTrackerOfflineDet(TrackerOfflineDet):
+    def __init__(self, unmatched_cost=255.0, *args, **kwargs):
+        self._UNMATCHED_COST = unmatched_cost
+        super().__init__(*args, **kwargs)
+
     def add(self, new_boxes, new_scores, new_features):
         """Initializes new Track objects and saves them."""
         num_new = len(new_boxes)
@@ -51,7 +65,6 @@ class ReIDPredefTracker(Tracker):
     def compute_distance_matrix(
         self, track_features, pred_features, track_boxes, boxes, metric_fn, alpha=0.0
     ):
-        UNMATCHED_COST = 255.0
 
         # Build cost matrix.
         distance = mm.distances.iou_matrix(
@@ -70,14 +83,14 @@ class ReIDPredefTracker(Tracker):
         combined_costs = alpha * distance + (1 - alpha) * appearance_distance
 
         # Set all unmatched costs to _UNMATCHED_COST.
-        distance = np.where(np.isnan(distance), UNMATCHED_COST, combined_costs)
+        distance = np.where(np.isnan(distance), self._UNMATCHED_COST, combined_costs)
 
-        distance = np.where(appearance_distance > 0.1, UNMATCHED_COST, distance)
+        distance = np.where(appearance_distance > 0.1, self._UNMATCHED_COST, distance)
 
         return distance
 
 
-class ReIDPredefHungarianTracker(ReIDPredefTracker):
+class ReIDHungarianTrackerOfflineDet(ReIDTrackerOfflineDet):
     def data_association(self, boxes, scores, pred_features):
         """Refactored from previous implementation to split it onto distance computation and track management"""
         if self.tracks:
@@ -114,7 +127,7 @@ class ReIDPredefHungarianTracker(ReIDPredefTracker):
             costs = distance[track_idx, box_idx]
             internal_track_id = track_ids[track_idx]
             seen_track_ids.append(internal_track_id)
-            if costs == _UNMATCHED_COST:
+            if costs == self._UNMATCHED_COST:
                 unmatched_track_ids.append(internal_track_id)
             else:
                 self.tracks[track_idx].box = boxes[box_idx]
@@ -133,7 +146,7 @@ class ReIDPredefHungarianTracker(ReIDPredefTracker):
         self.add(new_boxes, new_scores, new_features)
 
 
-class LongTermReIDHungarianPredefTracker(ReIDPredefHungarianTracker):
+class LongTermReIDHungarianTrackerOfflineDet(ReIDHungarianTrackerOfflineDet):
     def __init__(self, patience, *args, **kwargs):
         """Add a patience parameter"""
         self.patience = patience
@@ -161,7 +174,7 @@ class LongTermReIDHungarianPredefTracker(ReIDPredefHungarianTracker):
             costs = distance[track_idx, box_idx]
             internal_track_id = track_ids[track_idx]
             seen_track_ids.append(internal_track_id)
-            if costs == _UNMATCHED_COST:
+            if costs == self._UNMATCHED_COST:
                 unmatched_track_ids.append(internal_track_id)
 
             else:
@@ -200,30 +213,35 @@ class LongTermReIDHungarianPredefTracker(ReIDPredefHungarianTracker):
 ############
 
 
-class MPNTracker(LongTermReIDHungarianPredefTracker):
-    def __init__(self, assign_net, *args, **kwargs):
-        self.assign_net = assign_net
+class MPNTrackerOfflineDet(LongTermReIDHungarianTrackerOfflineDet):
+    def __init__(self, similarity_net, device="cuda", *args, **kwargs):
+        self.similarity_net = similarity_net
+        self.device = device
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, pred_features):
         if self.tracks:
-            track_boxes = torch.stack([t.box for t in self.tracks], axis=0).cuda()
+            track_boxes = torch.stack([t.box for t in self.tracks], axis=0).to(
+                self.device
+            )
             track_features = torch.stack(
                 [t.get_feature() for t in self.tracks], axis=0
-            ).cuda()
+            ).to(self.device)
 
             # Hacky way to recover the timestamps of boxes and tracks
-            curr_t = self.im_index * torch.ones((pred_features.shape[0],)).cuda()
+            curr_t = self.im_index * torch.ones((pred_features.shape[0],)).to(
+                self.device
+            )
             track_t = torch.as_tensor(
                 [self.im_index - t.inactive - 1 for t in self.tracks]
-            ).cuda()
+            ).to(self.device)
 
             # Do a forward pass through self.assign_net to obtain our costs.
-            edges_raw_logits = self.assign_net(
-                track_features.cuda(),
-                pred_features.cuda(),
-                track_boxes.cuda(),
-                boxes.cuda(),
+            edges_raw_logits = self.similarity_net(
+                track_features.to(self.device),
+                pred_features.to(self.device),
+                track_boxes.to(self.device),
+                boxes.to(self.device),
                 track_t,
                 curr_t,
             )
@@ -234,7 +252,7 @@ class MPNTracker(LongTermReIDHungarianPredefTracker):
             distance = 1 - pred_sim
             # bprint(pred_sim)
             # Do not allow mataches when sim < 0.5, to avoid low-confident associations
-            distance = np.where(pred_sim < 0.5, _UNMATCHED_COST, distance)
+            distance = np.where(pred_sim < 0.5, self._UNMATCHED_COST, distance)
 
             # Perform Hungarian matching.
             row_idx, col_idx = linear_assignment(distance)
