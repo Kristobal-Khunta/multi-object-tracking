@@ -10,9 +10,6 @@ import market.metrics as metrics
 mm.lap.default_solver = "lap"
 
 
-
-
-
 class TrackerOfflineDet(Tracker):
     def step(self, frame):
         """This function should be called every timestep to perform tracking with a blob
@@ -217,20 +214,24 @@ class LongTermReIDHungarianTrackerOfflineDet(ReIDHungarianTrackerOfflineDet):
 
 
 class MPNTrackerOfflineDet(LongTermReIDHungarianTrackerOfflineDet):
-    def __init__(self, similarity_net, device='cuda', *args, **kwargs):
+    def __init__(self, similarity_net, device="cuda", *args, **kwargs):
         self.similarity_net = similarity_net
         self.device = device
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, pred_features):
         if self.tracks:
-            track_boxes = torch.stack([t.box for t in self.tracks], axis=0).to(self.device)
+            track_boxes = torch.stack([t.box for t in self.tracks], axis=0).to(
+                self.device
+            )
             track_features = torch.stack(
                 [t.get_feature() for t in self.tracks], axis=0
             ).to(self.device)
 
             # Hacky way to recover the timestamps of boxes and tracks
-            curr_t = self.im_index * torch.ones((pred_features.shape[0],)).to(self.device)
+            curr_t = self.im_index * torch.ones((pred_features.shape[0],)).to(
+                self.device
+            )
             track_t = torch.as_tensor(
                 [self.im_index - t.inactive - 1 for t in self.tracks]
             ).to(self.device)
