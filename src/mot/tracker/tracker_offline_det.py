@@ -13,7 +13,7 @@ mm.lap.default_solver = "lap"
 _UNMATCHED_COST = 255
 
 
-class TrackerPredefDet(Tracker):
+class TrackerOfflineDet(Tracker):
     def step(self, frame):
         """This function should be called every timestep to perform tracking with a blob
         containing the image information.
@@ -26,7 +26,7 @@ class TrackerPredefDet(Tracker):
         self.update_results()
 
 
-class ReIDPredefTracker(TrackerPredefDet):
+class ReIDTrackerOfflineDet(TrackerOfflineDet):
     def add(self, new_boxes, new_scores, new_features):
         """Initializes new Track objects and saves them."""
         num_new = len(new_boxes)
@@ -90,7 +90,7 @@ class ReIDPredefTracker(TrackerPredefDet):
         return distance
 
 
-class ReIDPredefHungarianTracker(ReIDPredefTracker):
+class ReIDHungarianTrackerOfflineDet(ReIDTrackerOfflineDet):
     def data_association(self, boxes, scores, pred_features):
         """Refactored from previous implementation to split it onto distance computation and track management"""
         if self.tracks:
@@ -146,7 +146,7 @@ class ReIDPredefHungarianTracker(ReIDPredefTracker):
         self.add(new_boxes, new_scores, new_features)
 
 
-class LongTermReIDHungarianPredefTracker(ReIDPredefHungarianTracker):
+class LongTermReIDHungarianTrackerOfflineDet(ReIDHungarianTrackerOfflineDet):
     def __init__(self, patience, *args, **kwargs):
         """Add a patience parameter"""
         self.patience = patience
@@ -213,7 +213,7 @@ class LongTermReIDHungarianPredefTracker(ReIDPredefHungarianTracker):
 ############
 
 
-class MPNTracker(LongTermReIDHungarianPredefTracker):
+class MPNTrackerOfflineDet(LongTermReIDHungarianTrackerOfflineDet):
     def __init__(self, assign_net, *args, **kwargs):
         self.assign_net = assign_net
         super().__init__(*args, **kwargs)
