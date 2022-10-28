@@ -2,7 +2,7 @@ import motmetrics as mm
 import numpy as np
 import torch
 
-from mot.tracker.base import Tracker, ReIDTrackerBase
+from mot.tracker.base import Tracker, BaseReIDTracker
 from mot.utils import ltrb_to_ltwh, cosine_distance
 from scipy.optimize import linear_sum_assignment as linear_assignment
 
@@ -108,7 +108,7 @@ class HungarianIoUTracker(Tracker):
             self.add(boxes, scores)
 
 
-class ReIDHungarianIoUTracker(ReIDTrackerBase):
+class ReIDHungarianIoUTracker(BaseReIDTracker):
     def __init__(self, reid_model, *args, **kwargs):
         self.reid_model = reid_model
         self._UNMATCHED_COST = 255.0

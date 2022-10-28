@@ -39,7 +39,7 @@ class Track(object):
         return f"track_id = {self.id} score = {self.score:.2f} bbox = {self.box}"
 
 
-class TrackerBase:
+class BaseTracker:
     """The main tracking file, here is where magic happens."""
 
     def __init__(self, obj_detect):
@@ -96,7 +96,7 @@ class TrackerBase:
         return NotImplemented
 
 
-class Tracker(TrackerBase):
+class Tracker(BaseTracker):
     """The main tracking file, here is where magic happens."""
 
     def add(self, new_boxes, new_scores):
@@ -124,7 +124,7 @@ class Tracker(TrackerBase):
 
 
 ############
-class ReIDTrackerBase(TrackerBase):
+class BaseReIDTracker(BaseTracker):
     def __init__(self, *args, **kwargs):
         self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
