@@ -8,7 +8,7 @@ from scipy.optimize import linear_sum_assignment as linear_assignment
 
 
 # tracker
-class BaseTrackerIoU(Tracker):
+class IoUTracker(Tracker):
     def data_association(self, boxes, scores):
         # self.im_index - index of current proceeded image
         # num existing tracks = self.tracks = 0 at first step
