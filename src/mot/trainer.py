@@ -54,28 +54,28 @@ def train_one_epoch(model, data_loader, optimizer, accum_batches=1, print_freq=2
                 device
             )
 
-            assign_sim = model.forward(
+            similar_net = model.forward(
                 track_app=track_feats,
-                current_app=current_feats.cuda(),
-                track_coords=track_coords.cuda(),
-                current_coords=current_coords.cuda(),
+                current_app=current_feats.to(device),
+                track_coords=track_coords.to(device),
+                current_coords=current_coords.to(device),
                 track_t=track_t,
                 curr_t=curr_t,
             )
 
             same_id = (track_ids.view(-1, 1) == curr_ids.view(1, -1)).type(
-                assign_sim.dtype
+                similar_net.dtype
             )
-            same_id = same_id.unsqueeze(0).expand(assign_sim.shape[0], -1, -1)
+            same_id = same_id.unsqueeze(0).expand(similar_net.shape[0], -1, -1)
 
             loss = F.binary_cross_entropy_with_logits(
-                assign_sim, same_id, pos_weight=torch.as_tensor(20.0)
+                similar_net, same_id, pos_weight=torch.as_tensor(20.0)
             ) / float(len(batch))
             loss.backward()
 
             # Keep track of metrics
             with torch.no_grad():
-                pred = (assign_sim[-1] > 0.5).view(-1).float()
+                pred = (similar_net[-1] > 0.5).view(-1).float()
                 target = same_id[-1].view(-1)
                 metrics = compute_class_metric(pred, target)
 

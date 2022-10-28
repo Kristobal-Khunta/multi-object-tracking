@@ -10,7 +10,7 @@ import market.metrics as metrics
 mm.lap.default_solver = "lap"
 
 
-_UNMATCHED_COST = 255
+
 
 
 class TrackerOfflineDet(Tracker):
@@ -130,7 +130,7 @@ class ReIDHungarianTrackerOfflineDet(ReIDTrackerOfflineDet):
             costs = distance[track_idx, box_idx]
             internal_track_id = track_ids[track_idx]
             seen_track_ids.append(internal_track_id)
-            if costs == _UNMATCHED_COST:
+            if costs == self._UNMATCHED_COST:
                 unmatched_track_ids.append(internal_track_id)
             else:
                 self.tracks[track_idx].box = boxes[box_idx]
@@ -177,7 +177,7 @@ class LongTermReIDHungarianTrackerOfflineDet(ReIDHungarianTrackerOfflineDet):
             costs = distance[track_idx, box_idx]
             internal_track_id = track_ids[track_idx]
             seen_track_ids.append(internal_track_id)
-            if costs == _UNMATCHED_COST:
+            if costs == self._UNMATCHED_COST:
                 unmatched_track_ids.append(internal_track_id)
 
             else:
@@ -217,29 +217,30 @@ class LongTermReIDHungarianTrackerOfflineDet(ReIDHungarianTrackerOfflineDet):
 
 
 class MPNTrackerOfflineDet(LongTermReIDHungarianTrackerOfflineDet):
-    def __init__(self, assign_net, *args, **kwargs):
-        self.assign_net = assign_net
+    def __init__(self, similarity_net, device='cuda', *args, **kwargs):
+        self.similarity_net = similarity_net
+        self.device = device
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, pred_features):
         if self.tracks:
-            track_boxes = torch.stack([t.box for t in self.tracks], axis=0).cuda()
+            track_boxes = torch.stack([t.box for t in self.tracks], axis=0).to(self.device)
             track_features = torch.stack(
                 [t.get_feature() for t in self.tracks], axis=0
-            ).cuda()
+            ).to(self.device)
 
             # Hacky way to recover the timestamps of boxes and tracks
-            curr_t = self.im_index * torch.ones((pred_features.shape[0],)).cuda()
+            curr_t = self.im_index * torch.ones((pred_features.shape[0],)).to(self.device)
             track_t = torch.as_tensor(
                 [self.im_index - t.inactive - 1 for t in self.tracks]
-            ).cuda()
+            ).to(self.device)
 
             # Do a forward pass through self.assign_net to obtain our costs.
-            edges_raw_logits = self.assign_net(
-                track_features.cuda(),
-                pred_features.cuda(),
-                track_boxes.cuda(),
-                boxes.cuda(),
+            edges_raw_logits = self.similarity_net(
+                track_features.to(self.device),
+                pred_features.to(self.device),
+                track_boxes.to(self.device),
+                boxes.to(self.device),
                 track_t,
                 curr_t,
             )
@@ -250,7 +251,7 @@ class MPNTrackerOfflineDet(LongTermReIDHungarianTrackerOfflineDet):
             distance = 1 - pred_sim
             # bprint(pred_sim)
             # Do not allow mataches when sim < 0.5, to avoid low-confident associations
-            distance = np.where(pred_sim < 0.5, _UNMATCHED_COST, distance)
+            distance = np.where(pred_sim < 0.5, self._UNMATCHED_COST, distance)
 
             # Perform Hungarian matching.
             row_idx, col_idx = linear_assignment(distance)
