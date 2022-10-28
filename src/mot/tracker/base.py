@@ -19,6 +19,7 @@ class Tracker:
         self.results = {}
 
         self.mot_accum = None
+        self._UNMATCHED_COST = 255.0
 
     def reset(self, hard=True):
         self.tracks = []
@@ -66,9 +67,9 @@ class Tracker:
         """
 
         # object detection
-        # boxes, scores = self.obj_detect.detect(frame['img'])
-        boxes, scores = frame["det"]["boxes"], frame["det"]["scores"]
-
+        boxes, scores = self.obj_detect.detect(frame['img'])
+        # if predefined detections
+        # boxes, scores = frame["det"]["boxes"], frame["det"]["scores"]
         self.data_association(boxes, scores)
         self.update_results()
 

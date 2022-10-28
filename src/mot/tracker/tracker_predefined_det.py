@@ -13,7 +13,20 @@ mm.lap.default_solver = "lap"
 _UNMATCHED_COST = 255
 
 
-class ReIDPredefTracker(Tracker):
+class TrackerPredefDet(Tracker):
+    def step(self, frame):
+        """This function should be called every timestep to perform tracking with a blob
+        containing the image information.
+        """
+
+        # if predefined detections
+        boxes = frame["det"]["boxes"]
+        scores = frame["det"]["scores"]
+        self.data_association(boxes, scores)
+        self.update_results()
+
+
+class ReIDPredefTracker(TrackerPredefDet):
     def add(self, new_boxes, new_scores, new_features):
         """Initializes new Track objects and saves them."""
         num_new = len(new_boxes)
