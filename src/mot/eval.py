@@ -4,6 +4,7 @@ import numpy as np
 import torch
 from tqdm.auto import tqdm
 import time
+from torch.utils.data import DataLoader
 
 
 def get_mot_accum(results, seq):
@@ -143,3 +144,45 @@ def run_tracker(val_sequences, db, tracker, output_dir=None):
             [str(s) for s in val_sequences if not s.no_gt],
             generate_overall=True,
         )
+
+
+def run_tracker_raw_seq(
+    sequences,
+    tracker,
+):
+    time_total = 0
+    mot_accums = []
+    results_seq = {}
+    for seq in sequences:
+        tracker.reset()
+        now = time.time()
+
+        print(f"Tracking: {seq}")
+
+        data_loader = DataLoader(seq, batch_size=1, shuffle=False)
+
+        for frame in tqdm(data_loader):
+            tracker.step(frame)
+        results = tracker.get_results()
+        results_seq[str(seq)] = results
+
+        if seq.no_gt:
+            print(f"No GT evaluation data available.")
+        else:
+            mot_accums.append(get_mot_accum(results, seq))
+
+        time_total += time.time() - now
+
+        print(f"Tracks found: {len(results)}")
+        print(f"Runtime for {seq}: {time.time() - now:.1f} s.")
+
+        # seq.write_results(results, os.path.join(output_dir))
+
+    print(f"Runtime for all sequences: {time_total:.1f} s.")
+    if mot_accums:
+        evaluate_mot_accums(
+            mot_accums,
+            [str(s) for s in sequences if not s.no_gt],
+            generate_overall=True,
+        )
+    return results_seq
