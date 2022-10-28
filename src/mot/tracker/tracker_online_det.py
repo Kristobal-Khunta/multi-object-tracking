@@ -1,11 +1,9 @@
-import market.metrics as metrics
 import motmetrics as mm
 import numpy as np
 import torch
-import torch.nn.functional as F
-import torchvision.transforms.functional as TF
-from mot.tracker.base import Tracker
-from mot.utils import ltrb_to_ltwh
+
+from mot.tracker.base import Tracker, ReIDTrackerBase
+from mot.utils import ltrb_to_ltwh, cosine_distance
 from scipy.optimize import linear_sum_assignment as linear_assignment
 
 
@@ -53,6 +51,10 @@ class BaseTrackerIoU(Tracker):
 
 
 class HungarianIoUTracker(Tracker):
+    def __init__(self, *args, **kwargs):
+        self._UNMATCHED_COST = 255.0
+        super().__init__(*args, **kwargs)
+
     def data_association(self, boxes, scores):
         if self.tracks:
             track_ids = [t.id for t in self.tracks]
@@ -106,61 +108,67 @@ class HungarianIoUTracker(Tracker):
             self.add(boxes, scores)
 
 
-class ReIDTracker(Tracker):
-    def get_crop_from_boxes(self, boxes, frame, height=256, width=128):
-        """Crops all persons from a frame given the boxes.
+class ReIDHungarianIoUTracker(ReIDTrackerBase):
+    def __init__(self, reid_model, *args, **kwargs):
+        self.reid_model = reid_model
+        self._UNMATCHED_COST = 255.0
+        super().__init__(*args, **kwargs)
 
-        Args:
-                boxes: The bounding boxes.
-                frame: The current frame.
-                height (int, optional): [description]. Defaults to 256.
-                width (int, optional): [description]. Defaults to 128.
-        """
-        person_crops = []
-        norm_mean = [0.485, 0.456, 0.406]  # imagenet mean
-        norm_std = [0.229, 0.224, 0.225]  # imagenet std
-        for box in boxes:
-            box = box.to(torch.int32)
-            res = frame[:, :, box[1] : box[3], box[0] : box[2]]
-            res = F.interpolate(res, (height, width), mode="bilinear")
-            res = TF.normalize(res[0, ...], norm_mean, norm_std)
-            person_crops.append(res.unsqueeze(0))
+    def data_association(self, boxes, scores, frame):
+        crops = self.get_crop_from_boxes(boxes, frame)
+        pred_features = self.compute_reid_features(self.reid_model, crops).cpu().clone()
 
-        return person_crops
+        if self.tracks:
+            track_ids = [t.id for t in self.tracks]
+            track_boxes = torch.stack([t.box for t in self.tracks], axis=0)
+            track_features = torch.stack([t.get_feature() for t in self.tracks], axis=0)
 
-    def compute_reid_features(self, model, crops):
-        f_ = []
-        model.eval()
-        with torch.no_grad():
-            for data in crops:
-                img = data.cuda()
-                features = model(img)
-                features = features.cpu().clone()
-                f_.append(features)
-            f_ = torch.cat(f_, 0)
-            return f_
+            # This will use your similarity measure. Please use cosine_distance!
+            distance = self.compute_distance_matrix(
+                track_features,
+                pred_features,
+                track_boxes,
+                boxes,
+                metric_fn=cosine_distance,
+            )
 
-    def compute_distance_matrix(
-        self, track_features, pred_features, track_boxes, boxes, metric_fn, alpha=0.0
-    ):
-        UNMATCHED_COST = 255.0
+            # Perform Hungarian matching.
+            row_idx, col_idx = linear_assignment(distance)
 
-        # Build cost matrix.
-        distance = mm.distances.iou_matrix(
-            track_boxes.numpy(), boxes.numpy(), max_iou=0.5
-        )
+            # row_idx and col_idx are indices into track_boxes and boxes.
+            # row_idx[i] and col_idx[i] define a match.
+            # distance[row_idx[i], col_idx[i]] define the cost for that matching.
 
-        appearance_distance = metrics.compute_distance_matrix(
-            track_features, pred_features, metric_fn=metric_fn
-        )
-        appearance_distance = appearance_distance.numpy() * 0.5
-        # return appearance_distance
+            remove_track_ids = []
+            seen_track_ids = []
+            seen_box_idx = []
+            # Update existing tracks and remove unmatched tracks.
 
-        assert np.alltrue(appearance_distance >= -0.1)
-        assert np.alltrue(appearance_distance <= 1.1)
+            for track_idx, box_idx in zip(row_idx, col_idx):
+                costs = distance[track_idx, box_idx]
+                internal_track_id = track_ids[track_idx]
+                seen_track_ids.append(internal_track_id)
+                # If the costs are equal to _UNMATCHED_COST, it's not a match.
+                if costs == self._UNMATCHED_COST:
+                    remove_track_ids.append(internal_track_id)
+                else:
+                    self.tracks[track_idx].box = boxes[box_idx]
+                    self.tracks[track_idx].add_feature(pred_features[box_idx])
+                    seen_box_idx.append(box_idx)
 
-        combined_costs = alpha * distance + (1 - alpha) * appearance_distance
+            unseen_track_ids = set(track_ids) - set(seen_track_ids)
+            remove_track_ids.extend(list(unseen_track_ids))
+            self.tracks = [t for t in self.tracks if t.id not in remove_track_ids]
 
-        # Set all unmatched costs to _UNMATCHED_COST.
-        distance = np.where(np.isnan(distance), UNMATCHED_COST, combined_costs)
-        return distance
+            # update the feature of a track by using add_feature:
+            # self.tracks[my_track_id].add_feature(pred_features[my_feat_index])
+            # use the mean feature from the last 10 frames for ReID.
+
+            new_boxes_idx = set(range(len(boxes))) - set(seen_box_idx)
+            new_boxes = [boxes[i] for i in new_boxes_idx]
+            new_scores = [scores[i] for i in new_boxes_idx]
+            new_features = [pred_features[i] for i in new_boxes_idx]
+            self.add(new_boxes, new_scores, new_features)
+        else:
+            # No tracks exist.
+            self.add(boxes, scores, pred_features)
