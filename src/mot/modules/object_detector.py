@@ -1,5 +1,5 @@
-from torchvision.modules.detection import FasterRCNN
-from torchvision.modules.detection.backbone_utils import resnet_fpn_backbone
+from torchvision.models.detection import FasterRCNN
+from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 
 
 class FRCNN_FPN(FasterRCNN):
