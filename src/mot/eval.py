@@ -167,7 +167,7 @@ def run_tracker_raw_seq(
         results_seq[str(seq)] = results
 
         if seq.no_gt:
-            print(f"No GT evaluation data available.")
+            print("No GT evaluation data available.")
         else:
             mot_accums.append(get_mot_accum(results, seq))
 
