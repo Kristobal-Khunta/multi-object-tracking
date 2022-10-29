@@ -11,7 +11,7 @@ from torchvision.transforms import ToTensor
 _sets = {}
 
 # Fill all available datasets, change here to modify / add new datasets.
-for split in [
+for split_val in [
     "train",
     "test",
     "all",
@@ -35,8 +35,8 @@ for split in [
     "val",
     "val2",
 ]:
-    name = f"MOT16-{split}"
-    _sets[name] = lambda root_dir, split=split, **kwargs: MOT16(
+    name = f"MOT16-{split_val}"
+    _sets[name] = lambda root_dir, split=split_val, **kwargs: MOT16(
         root_dir, split, **kwargs
     )
 
