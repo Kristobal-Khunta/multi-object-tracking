@@ -238,8 +238,8 @@ class Dataset:
 
         num_gallery_pids = self.get_num_pids(self.gallery)
         num_gallery_cams = self.get_num_cams(self.gallery)
-        msg = (  # skipcq
-            "  ----------------------------------------\n"  # skipcq
+        msg = (  
+            "  ----------------------------------------\n"  # skipcq: PYL-C0209
             "  subset   | # ids | # items | # cameras\n"
             "  ----------------------------------------\n"
             "  train    | {:5d} | {:7d} | {:9d}\n"
