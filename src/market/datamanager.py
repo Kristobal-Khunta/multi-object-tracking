@@ -6,7 +6,7 @@ from .sampler import build_train_sampler
 from .transforms import build_transforms
 
 
-class DataManager(object):
+class DataManager:
     r"""Base data manager.
     Args:
         sources (str or list): source dataset(s).
