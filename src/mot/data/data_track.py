@@ -61,7 +61,8 @@ class MOT16Sequences:
         dataset --  the name of the dataset
         args -- arguments used to call the dataset
         """
-        assert dataset in _sets, "[!] Dataset not found: {}".format(dataset)
+        if dataset not in _sets:
+            raise AssertionError("[!] Dataset not found: {}".format(dataset))
 
         self._data = _sets[dataset](root_dir, **kwargs)
 
@@ -150,9 +151,10 @@ class MOT16Sequence(Dataset):
 
         self.transforms = ToTensor()
 
-        assert (
+        if not (
             seq_name in self._train_folders or seq_name in self._test_folders
-        ), "Image set does not exist: {}".format(seq_name)
+        ):
+            raise AssertionError("Image set does not exist: {}".format(seq_name))
 
         self.data, self.no_gt = self._sequence()
 
@@ -195,9 +197,10 @@ class MOT16Sequence(Dataset):
 
         config_file = osp.join(seq_path, "seqinfo.ini")
 
-        assert osp.exists(config_file), "Config file does not exist: {}".format(
-            config_file
-        )
+        if not osp.exists(config_file):
+            raise AssertionError("Config file does not exist: {}".format(
+                config_file
+            ))
 
         config = configparser.ConfigParser()
         config.read(config_file)

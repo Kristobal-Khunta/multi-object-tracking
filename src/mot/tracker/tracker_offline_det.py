@@ -77,8 +77,10 @@ class ReIDTrackerOfflineDet(TrackerOfflineDet):
         appearance_distance = appearance_distance.numpy() * 0.5
         # return appearance_distance
 
-        assert np.alltrue(appearance_distance >= -0.1)
-        assert np.alltrue(appearance_distance <= 1.1)
+        if not np.alltrue(appearance_distance >= -0.1):
+            raise AssertionError
+        if not np.alltrue(appearance_distance <= 1.1):
+            raise AssertionError
 
         combined_costs = alpha * distance + (1 - alpha) * appearance_distance
 

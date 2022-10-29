@@ -300,9 +300,10 @@ class ResNet(nn.Module):
             self.feature_dim = input_dim
             return None
 
-        assert isinstance(
+        if not isinstance(
             fc_dims, (list, tuple)
-        ), "fc_dims must be either list or tuple, but got {}".format(type(fc_dims))
+        ):
+            raise AssertionError("fc_dims must be either list or tuple, but got {}".format(type(fc_dims)))
 
         layers = []
         for dim in fc_dims:

@@ -28,9 +28,10 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
             path = os.path.join(root, f)
             config_file = os.path.join(path, "seqinfo.ini")
 
-            assert os.path.exists(config_file), "Path does not exist: {}".format(
-                config_file
-            )
+            if not os.path.exists(config_file):
+                raise AssertionError("Path does not exist: {}".format(
+                    config_file
+                ))
 
             config = configparser.ConfigParser()
             config.read(config_file)
@@ -42,7 +43,8 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
 
             for i in range(1, seq_len + 1):
                 img_path = os.path.join(_imDir, f"{i:06d}{im_ext}")
-                assert os.path.exists(img_path), "Path does not exist: {img_path}"
+                if not os.path.exists(img_path):
+                    raise AssertionError("Path does not exist: {img_path}")
                 # self._img_paths.append((img_path, im_width, im_height))
                 self._img_paths.append(img_path)
 
@@ -73,7 +75,8 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
             os.path.dirname(os.path.dirname(img_path)), "gt", "gt.txt"
         )
 
-        assert os.path.exists(gt_file), "GT file does not exist: {}".format(gt_file)
+        if not os.path.exists(gt_file):
+            raise AssertionError("GT file does not exist: {}".format(gt_file))
 
         bounding_boxes = []
 
