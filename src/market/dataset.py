@@ -238,7 +238,7 @@ class Dataset:
 
         num_gallery_pids = self.get_num_pids(self.gallery)
         num_gallery_cams = self.get_num_cams(self.gallery)
-
+        # scipcq: PYL-C0209
         msg = (
             "  ----------------------------------------\n"
             "  subset   | # ids | # items | # cameras\n"
@@ -258,7 +258,7 @@ class Dataset:
                 len(self.gallery),
                 num_gallery_cams,
             )
-        )  # scipcq: PYL-C0209
+        )  
 
         return msg
 
