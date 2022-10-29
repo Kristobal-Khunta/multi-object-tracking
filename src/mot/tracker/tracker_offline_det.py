@@ -156,7 +156,7 @@ class LongTermReIDHungarianTrackerOfflineDet(ReIDHungarianTrackerOfflineDet):
     def update_results(self):
         """Only store boxes for tracks that are active"""
         for t in self.tracks:
-            if t.id not in self.results.keys():
+            if t.id not in self.results:
                 self.results[t.id] = {}
             if t.inactive == 0:
                 self.results[t.id][self.im_index] = np.concatenate(

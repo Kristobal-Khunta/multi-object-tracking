@@ -71,7 +71,7 @@ class BaseTracker(abc.ABC):
     def update_results(self):
         # results
         for t in self.tracks:
-            if t.id not in self.results.keys():
+            if t.id not in self.results:
                 self.results[t.id] = {}
             self.results[t.id][self.im_index] = np.concatenate(
                 [t.box.cpu().numpy(), np.array([t.score])]
