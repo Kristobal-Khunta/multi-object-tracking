@@ -115,6 +115,7 @@ class Dataset:
     def __len__(self):
         return len(self.data)
 
+    # scipcq
     # def __add__(self, other):
     #     """Adds two datasets together (only the train set)."""
     #     train = copy.deepcopy(self.train)
@@ -257,7 +258,7 @@ class Dataset:
                 len(self.gallery),
                 num_gallery_cams,
             )
-        )
+        )  # scipcq: PYL-C0209
 
         return msg
 

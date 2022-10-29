@@ -167,7 +167,7 @@ def plot_sequence(tracks, db, first_n_frames=None):
     # infinite color loop
     cyl = cy("ec", colors)
     loop_cy_iter = cyl()
-    styles = defaultdict(lambda: next(loop_cy_iter))
+    styles = defaultdict(lambda: next(loop_cy_iter))  # scipcq: PTC-W0063
 
     for i, v in enumerate(db):
         img = v["img"].mul(255).permute(1, 2, 0).byte().numpy()
@@ -217,7 +217,7 @@ def plot_sequence(tracks, db, first_n_frames=None):
 def plot_single_tracked_frame(img, img_idx, tracks):
     cyl = cy("ec", colors)
     loop_cy_iter = cyl()
-    styles = defaultdict(lambda: next(loop_cy_iter))
+    styles = defaultdict(lambda: next(loop_cy_iter))  # scipcq: PTC-W0063
 
     dpi = 300
     _, ax = plt.subplots(1, dpi=dpi)

@@ -38,12 +38,12 @@ def get_mot_accum(results, seq):
         for track_id, frames in results.items():
             if i in frames:
                 track_ids.append(track_id)
-                # frames = x1, y1, x2, y2, score
+                # frames = x1, y1, x2, y2, score  scipcq
                 track_boxes.append(frames[i][:4])
 
         if track_ids:
             track_boxes = np.stack(track_boxes, axis=0)
-            # x1, y1, x2, y2 --> x1, y1, width, height
+            # x1, y1, x2, y2 --> x1, y1, width, height scipcq
             track_boxes = np.stack(
                 (
                     track_boxes[:, 0],

@@ -69,6 +69,7 @@ class MetricMeter:
                 v = v.item()
             self.meters[k].update(v)
 
+    # scipcq: PYL-C0209
     def __str__(self):
         output_str = []
         for name, meter in self.meters.items():
@@ -110,4 +111,4 @@ def print_statistics(batch_idx, num_batches, epoch, max_epoch, batch_time, losse
             eta=eta_str,
             losses=losses,
         )
-    )
+    )  # scipcq: PYL-C0209
