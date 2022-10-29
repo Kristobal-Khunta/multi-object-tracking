@@ -152,7 +152,8 @@ class Dataset(object):
     #     else:
     #         return self.__add__(other)
 
-    def get_num_pids(self, data):
+    @staticmethod
+    def get_num_pids(data):
         """Returns the number of training person identities.
         Each tuple in data contains (img_path(s), pid, camid, dsetid).
         """
@@ -162,7 +163,8 @@ class Dataset(object):
             pids.add(pid)
         return len(pids)
 
-    def get_num_cams(self, data):
+    @staticmethod
+    def get_num_cams(data):
         """Returns the number of training cameras.
         Each tuple in data contains (img_path(s), pid, camid, dsetid).
         """
@@ -172,7 +174,8 @@ class Dataset(object):
             cams.add(camid)
         return len(cams)
 
-    def get_num_datasets(self, data):
+    @staticmethod
+    def get_num_datasets(data):
         """Returns the number of datasets included.
         Each tuple in data contains (img_path(s), pid, camid, dsetid).
         """
