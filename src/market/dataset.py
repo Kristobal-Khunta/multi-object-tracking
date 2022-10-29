@@ -16,16 +16,14 @@ def read_image(path):
     """
     got_img = False
     if not osp.exists(path):
-        raise IOError('"{}" does not exist'.format(path))
+        raise IOError(f"{path} does not exist")
     while not got_img:
         try:
             img = Image.open(path).convert("RGB")
             got_img = True
         except IOError:
             print(
-                'IOError incurred when reading "{}". Will redo. Don\'t worry. Just chill.'.format(
-                    path
-                )
+                f'IOError incurred when reading "{path}". Will redo. Don\'t worry. Just chill.'
             )
     return img
 
@@ -68,7 +66,7 @@ class Dataset(object):
         mode="train",
         combineall=False,
         verbose=True,
-        **kwargs
+        **kwargs,
     ):
         # extend 3-tuple (img_path(s), pid, camid) to
         # 4-tuple (img_path(s), pid, camid, dsetid) by
@@ -104,8 +102,8 @@ class Dataset(object):
             self.data = self.gallery
         else:
             raise ValueError(
-                "Invalid mode. Got {}, but expected to be "
-                "one of [train | query | gallery]".format(self.mode)
+                f"Invalid mode. Got {self.mode}, but expected to be "
+                "one of [train | query | gallery]"
             )
 
         if self.verbose:
@@ -228,7 +226,7 @@ class Dataset(object):
 
         for fpath in required_files:
             if not osp.exists(fpath):
-                raise RuntimeError('"{}" is not found'.format(fpath))
+                raise RuntimeError(f"{fpath} is not found")
 
     def __repr__(self):
         num_train_pids = self.get_num_pids(self.train)
@@ -315,7 +313,7 @@ class ImageDataset(Dataset):
         num_gallery_pids = self.get_num_pids(self.gallery)
         num_gallery_cams = self.get_num_cams(self.gallery)
 
-        print("=> Loaded {}".format(self.__class__.__name__))
+        print(f"=> Loaded {self.__class__.__name__}")
         print("  ----------------------------------------")
         print("  subset   | # ids | # images | # cameras")
         print("  ----------------------------------------")

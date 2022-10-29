@@ -207,8 +207,8 @@ class ResNet(nn.Module):
             replace_stride_with_dilation = [False, False, False]
         if len(replace_stride_with_dilation) != 3:
             raise ValueError(
-                "replace_stride_with_dilation should be None "
-                "or a 3-element tuple, got {}".format(replace_stride_with_dilation)
+                f"replace_stride_with_dilation should be None "
+                "or a 3-element tuple, got {replace_stride_with_dilation}"
             )
         self.groups = groups
         self.base_width = width_per_group
@@ -303,7 +303,7 @@ class ResNet(nn.Module):
         if not isinstance(
             fc_dims, (list, tuple)
         ):
-            raise AssertionError("fc_dims must be either list or tuple, but got {}".format(type(fc_dims)))
+            raise AssertionError(f"fc_dims must be either list or tuple, but got {type(fc_dims)}"
 
         layers = []
         for dim in fc_dims:
@@ -364,7 +364,7 @@ class ResNet(nn.Module):
         elif self.loss == "triplet":
             return y, v
         else:
-            raise KeyError("Unsupported loss: {}".format(self.loss))
+            raise KeyError(f"Unsupported loss: {self.loss}"
 
 
 def init_pretrained_weights(model, model_url):

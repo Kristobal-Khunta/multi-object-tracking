@@ -29,9 +29,7 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
             config_file = os.path.join(path, "seqinfo.ini")
 
             if not os.path.exists(config_file):
-                raise AssertionError("Path does not exist: {}".format(
-                    config_file
-                ))
+                raise AssertionError(f"Path does not exist: {config_file}")
 
             config = configparser.ConfigParser()
             config.read(config_file)
@@ -76,7 +74,7 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
         )
 
         if not os.path.exists(gt_file):
-            raise AssertionError("GT file does not exist: {}".format(gt_file))
+            raise AssertionError(f"GT file does not exist: {gt_file}")
 
         bounding_boxes = []
 

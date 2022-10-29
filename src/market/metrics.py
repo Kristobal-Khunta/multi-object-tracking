@@ -11,7 +11,7 @@ def eval_market1501(distmat, q_pids, g_pids, q_camids, g_camids, max_rank):
 
     if num_g < max_rank:
         max_rank = num_g
-        print("Note: number of gallery samples is quite small, got {}".format(num_g))
+        print(f"Note: number of gallery samples is quite small, got {num_g}")
 
     indices = np.argsort(distmat, axis=1)
     matches = (g_pids[indices] == q_pids[:, np.newaxis]).astype(np.int32)
@@ -80,9 +80,9 @@ def compute_distance_matrix(input1, input2, metric_fn):
     if not isinstance(input2, torch.Tensor):
         raise AssertionError
     if input1.dim() != 2:
-        raise AssertionError("Expected 2-D tensor, but got {}-D".format(input1.dim()))
+        raise AssertionError(f"Expected 2-D tensor, but got {input1.dim()}-D")
     if input2.dim() != 2:
-        raise AssertionError("Expected 2-D tensor, but got {}-D".format(input2.dim()))
+        raise AssertionError(f"Expected 2-D tensor, but got {input2.dim()}-D")
     if input1.size(1) != input2.size(
         1
     ):

@@ -227,7 +227,7 @@ def build_transforms(
     transforms="random_flip",
     norm_mean=(0.485, 0.456, 0.406),
     norm_std=(0.229, 0.224, 0.225),
-    **kwargs
+    **kwargs,
 ):
     """Builds train and test transform functions.
     Args:
@@ -247,9 +247,7 @@ def build_transforms(
 
     if not isinstance(transforms, list):
         raise ValueError(
-            "transforms must be a list of strings, but found to be {}".format(
-                type(transforms)
-            )
+            f"transforms must be a list of strings, but found to be {type(transforms)}"
         )
 
     if len(transforms) > 0:
@@ -263,7 +261,7 @@ def build_transforms(
     print("Building train transforms ...")
     transform_tr = []
 
-    print("+ resize to {}x{}".format(height, width))
+    print(f"+ resize to {height}x{width}")
     transform_tr += [Resize((height, width))]
 
     if "random_flip" in transforms:
@@ -272,10 +270,9 @@ def build_transforms(
 
     if "random_crop" in transforms:
         print(
-            "+ random crop (enlarge to {}x{} and "
-            "crop {}x{})".format(
-                int(round(height * 1.125)), int(round(width * 1.125)), height, width
-            )
+            f"+ random crop (enlarge to {int(round(height * 1.125))}"
+            + f"x{ int(round(width * 1.125))}"
+            + f"and crop {height}x{width}"
         )
         transform_tr += [Random2DTranslation(height, width)]
 
@@ -292,7 +289,7 @@ def build_transforms(
     print("+ to torch tensor of range [0, 1]")
     transform_tr += [ToTensor()]
 
-    print("+ normalization (mean={}, std={})".format(norm_mean, norm_std))
+    print(f"+ normalization (mean={norm_mean}, std={norm_std})")
     transform_tr += [normalize]
 
     if "random_erase" in transforms:
@@ -302,9 +299,9 @@ def build_transforms(
     transform_tr = Compose(transform_tr)
 
     print("Building test transforms ...")
-    print("+ resize to {}x{}".format(height, width))
+    print(f"+ resize to {height}x{width}")
     print("+ to torch tensor of range [0, 1]")
-    print("+ normalization (mean={}, std={})".format(norm_mean, norm_std))
+    print(f"+ normalization (mean={norm_mean}, std={norm_std})")
 
     transform_te = Compose(
         [

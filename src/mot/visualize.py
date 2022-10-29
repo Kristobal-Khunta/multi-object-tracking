@@ -164,12 +164,6 @@ def plot_sequence(tracks, db, first_n_frames=None):
         tracks (dict): The dictionary containing the track dictionaries in the form tracks[track_id][frame] = bb
         db (torch.utils.data.Dataset): The dataset with the images belonging to the tracks (e.g. MOT_Sequence object)
     """
-
-    # print("[*] Plotting whole sequence to {}".format(output_dir))
-
-    # if not osp.exists(output_dir):
-    # 	os.makedirs(output_dir)
-
     # infinite color loop
     cyl = cy("ec", colors)
     loop_cy_iter = cyl()

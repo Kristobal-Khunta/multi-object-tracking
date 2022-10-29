@@ -25,8 +25,8 @@ class RandomIdentitySampler(Sampler):
     def __init__(self, data_source, batch_size, num_instances):
         if batch_size < num_instances:
             raise ValueError(
-                "batch_size={} must be no less "
-                "than num_instances={}".format(batch_size, num_instances)
+                f"batch_size={batch_size} must be no less "
+                f"than num_instances={num_instances}"
             )
 
         self.data_source = data_source
@@ -107,9 +107,7 @@ def build_train_sampler(
     if (
         train_sampler not in AVAI_SAMPLERS
     ):
-        raise AssertionError("train_sampler must be one of {}, but got {}".format(
-            AVAI_SAMPLERS, train_sampler
-        ))
+        raise AssertionError(f"train_sampler must be one of {AVAI_SAMPLERS}, but got {train_sampler}")
 
     if train_sampler == "RandomIdentitySampler":
         sampler = RandomIdentitySampler(data_source, batch_size, num_instances)
