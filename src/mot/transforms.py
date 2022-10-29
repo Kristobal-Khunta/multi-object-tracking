@@ -39,7 +39,7 @@ class RandomHorizontalFlip:
 
     def __call__(self, image, target):
         if random.random() < self.prob:
-            height, width = image.shape[-2:]
+            height, width = image.shape[-2:]  # skipcq: PYL-W0612
             image = image.flip(-1)
             bbox = target["boxes"]
             bbox[:, [0, 2]] = width - bbox[:, [2, 0]]

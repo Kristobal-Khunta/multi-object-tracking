@@ -14,7 +14,7 @@ class IoUTracker(Tracker):
         # num existing tracks = self.tracks = 0 at first step
         # new bboxes form new frame = boxes
         if self.tracks:
-            track_ids = [t.id for t in self.tracks]
+            # track_ids = [t.id for t in self.tracks] # not needed in this tracker
             track_boxes = np.stack([t.box.numpy() for t in self.tracks], axis=0)
 
             iou_track_boxes = ltrb_to_ltwh(track_boxes)
@@ -57,7 +57,7 @@ class HungarianIoUTracker(Tracker):
 
     def data_association(self, boxes, scores):
         if self.tracks:
-            track_ids = [t.id for t in self.tracks]
+            # track_ids = [t.id for t in self.tracks]  # not needed in this tracker
             track_boxes = np.stack([t.box.numpy() for t in self.tracks], axis=0)
 
             # Build cost matrix.
@@ -80,7 +80,7 @@ class HungarianIoUTracker(Tracker):
             bad_idx = np.argwhere(~condition)
             good_idx = np.argwhere(condition)
 
-            internal_idx_bad_track = row_idx[bad_idx].ravel()
+            # internal_idx_bad_track = row_idx[bad_idx].ravel() # not needed in this tracker
             internal_idx_bad_bbox = col_idx[bad_idx].ravel()
 
             internal_idx_good_tracks = row_idx[good_idx].ravel()
@@ -185,7 +185,7 @@ class ReIDHungarianIoUTracker(BaseReIDTracker):
         pred_features = self.compute_reid_features(self.reid_model, crops).cpu().clone()
 
         if self.tracks:
-            track_ids = [t.id for t in self.tracks]
+            # track_ids = [t.id for t in self.tracks] # not needed
             track_boxes = torch.stack([t.box for t in self.tracks], axis=0)
             track_features = torch.stack([t.get_feature() for t in self.tracks], axis=0)
 

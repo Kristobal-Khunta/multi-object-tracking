@@ -77,7 +77,7 @@ class RandomErasing:
         if random.uniform(0, 1) > self.probability:
             return img
 
-        for attempt in range(100):
+        for attempt in range(100):  # skipcq: PYL-W0612
             area = img.size()[1] * img.size()[2]
 
             target_area = random.uniform(self.sl, self.sh) * area

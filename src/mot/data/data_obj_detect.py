@@ -164,7 +164,6 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
         ./MOT17-14.txt
         """
 
-
         files = {}
         for image_id, res in results.items():
             path = self._img_paths[image_id]

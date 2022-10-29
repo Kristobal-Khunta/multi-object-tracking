@@ -238,7 +238,7 @@ class Dataset:
 
         num_gallery_pids = self.get_num_pids(self.gallery)
         num_gallery_cams = self.get_num_cams(self.gallery)
-        msg = (  
+        msg = (
             "  ----------------------------------------\n"  # skipcq: PYL-C0209
             "  subset   | # ids | # items | # cameras\n"
             "  ----------------------------------------\n"
@@ -267,7 +267,7 @@ class Dataset:
         """
         img_list = []
 
-        for k in range(k_tfm):
+        for _ in range(k_tfm):
             img_list.append(tfm(img0))
 
         img = img_list
@@ -318,7 +318,7 @@ class ImageDataset(Dataset):
         print("  subset   | # ids | # images | # cameras")
         print("  ----------------------------------------")
         print(
-            "  train    | {:5d} | {:8d} | {:9d}".format( # skipcq: PYL-C0209
+            "  train    | {:5d} | {:8d} | {:9d}".format(  # skipcq: PYL-C0209
                 num_train_pids, len(self.train), num_train_cams
             )
         )
