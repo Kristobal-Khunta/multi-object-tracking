@@ -156,9 +156,9 @@ class BaseReIDTracker(BaseTracker):
         self.update_results()
 
     @staticmethod
-    def get_crop_from_boxes(self, boxes, frame, height=256, width=128):
+    def get_crop_from_boxes(boxes, frame, height=256, width=128):
         """Crops all persons from a frame given the boxes.
-        Args:
+        Args:   
                 boxes: The bounding boxes.
                 frame: The current frame.
                 height (int, optional): [description]. Defaults to 256.
