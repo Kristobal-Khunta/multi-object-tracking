@@ -72,8 +72,9 @@ class MetricMeter:
     def __str__(self):
         output_str = []
         for name, meter in self.meters.items():
-            # scipcq
-            output_str.append("{} {:.4f} ({:.4f})".format(name, meter.val, meter.avg))
+            output_str.append(
+                "{} {:.4f} ({:.4f})".format(name, meter.val, meter.avg)
+            )  # scipcq
         return self.delimiter.join(output_str)
 
 
