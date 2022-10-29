@@ -8,11 +8,11 @@ def evaluate(model, test_loader, metric_fn, ranks=[1, 5, 10, 20]):
         model.eval()
         print("Extracting features from query set...")
         q_feat, q_pids, q_camids = utils.extract_features(model, test_loader["query"])
-        print("Done, obtained {}-by-{} matrix".format(q_feat.size(0), q_feat.size(1)))
+        print(f"Done, obtained {q_feat.size(0)}-by-{q_feat.size(1)} matrix")
 
         print("Extracting features from gallery set ...")
         g_feat, g_pids, g_camids = utils.extract_features(model, test_loader["gallery"])
-        print("Done, obtained {}-by-{} matrix".format(g_feat.size(0), g_feat.size(1)))
+        print(f"Done, obtained {g_feat.size(0)}-by-{g_feat.size(1)} matrix")
 
         distmat = metrics.compute_distance_matrix(q_feat, g_feat, metric_fn=metric_fn)
         distmat = distmat.numpy()
@@ -23,8 +23,8 @@ def evaluate(model, test_loader, metric_fn, ranks=[1, 5, 10, 20]):
         )
 
         print("** Results **")
-        print("mAP: {:.1%}".format(mAP))
+        print(f"mAP: {mAP:.1%}")
         print("CMC curve")
         for r in ranks:
-            print("Rank-{:<3}: {:.1%}".format(r, cmc[r - 1]))
+            print(f"Rank-{r:<3}: {cmc[r - 1]:.1%}")
         return cmc[0], mAP

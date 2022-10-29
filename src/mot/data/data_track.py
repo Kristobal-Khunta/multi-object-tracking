@@ -294,7 +294,7 @@ class MOT16Sequence(Dataset):
 
         file = osp.join(output_dir, "MOT16-" + self._seq_name[6:8] + ".txt")
 
-        print("Writing predictions to: {}".format(file))
+        print(f"Writing predictions to {file}")
 
         with open(file, "w") as of:
             writer = csv.writer(of, delimiter=",")
