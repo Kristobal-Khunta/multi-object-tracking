@@ -8,7 +8,7 @@ import numpy as np
 __all__ = ["AverageMeter", "MetricMeter"]
 
 
-class AverageMeter():
+class AverageMeter(object):
     """Computes and stores the average and current value.
 
     Examples::
@@ -34,7 +34,7 @@ class AverageMeter():
         self.avg = self.sum / self.count
 
 
-class MetricMeter():
+class MetricMeter(object):
     """A collection of metrics.
 
     Source: https://github.com/KaiyangZhou/Dassl.pytorch

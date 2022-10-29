@@ -28,7 +28,7 @@ def read_image(path):
     return img
 
 
-class Dataset():
+class Dataset(object):
     """An abstract class representing a Dataset.
     This is the base class for ``ImageDataset`` and ``VideoDataset``.
     Args:

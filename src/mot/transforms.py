@@ -23,7 +23,7 @@ def _flip_coco_person_keypoints(kps, width):
     return flipped_data
 
 
-class Compose():
+class Compose(object):
     def __init__(self, transforms):
         self.transforms = transforms
 
@@ -33,7 +33,7 @@ class Compose():
         return image, target
 
 
-class RandomHorizontalFlip():
+class RandomHorizontalFlip(object):
     def __init__(self, prob):
         self.prob = prob
 
@@ -53,7 +53,7 @@ class RandomHorizontalFlip():
         return image, target
 
 
-class ToTensor():
+class ToTensor(object):
     def __call__(self, image, target):
         image = F.to_tensor(image)
         return image, target
