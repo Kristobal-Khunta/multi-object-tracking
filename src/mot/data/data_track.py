@@ -244,6 +244,7 @@ class MOT16Sequence(Dataset):
             no_gt = True
 
         if self._load_seg:
+            # check folder exist
             if osp.exists(seg_dir):
                 for seg_file in listdir_nohidden(seg_dir):
                     frame_id = int(seg_file.split(".")[0])
