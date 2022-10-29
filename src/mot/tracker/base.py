@@ -83,17 +83,17 @@ class BaseTracker:
         return self.results
 
     def data_association(self):
-        return NotImplemented
+        raise NotImplementedError
 
     def add(self, new_boxes, new_scores):
         """Initializes new Track objects and saves them."""
-        return NotImplemented
+        raise NotImplementedError
 
     def step(self, frame):
         """This function should be called every timestep to perform tracking with a blob
         containing the image information.
         """
-        return NotImplemented
+        raise NotImplementedError
 
 
 class Tracker(BaseTracker):
@@ -122,7 +122,6 @@ class Tracker(BaseTracker):
         self.data_association(boxes, scores)
         self.update_results()
 
-
 ############
 class BaseReIDTracker(BaseTracker):
     def __init__(self, *args, **kwargs):
@@ -130,7 +129,7 @@ class BaseReIDTracker(BaseTracker):
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, frame):
-        return NotImplemented
+        raise NotImplementedError
 
     def add(self, new_boxes, new_scores, new_features):
         """Initializes new Track objects and saves them."""
