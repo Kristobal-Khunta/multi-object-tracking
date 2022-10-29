@@ -61,7 +61,7 @@ class HardBatchMiningTripletLoss(torch.nn.Module):
 class CombinedLoss:
     def __init__(self, margin=0.3, weight_triplet=1.0, weight_ce=1.0):
         super(CombinedLoss, self).__init__()
-        self.triplet_loss = HardBatchMiningTripletLoss()
+        self.triplet_loss = HardBatchMiningTripletLoss(margin)
         self.cross_entropy = torch.nn.CrossEntropyLoss()
         self.weight_triplet = weight_triplet
         self.weight_ce = weight_ce
