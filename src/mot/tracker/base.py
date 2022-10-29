@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
 import market.metrics as metrics
-
+import abc
 mm.lap.default_solver = "lap"
 
 
@@ -39,7 +39,7 @@ class Track(object):
         return f"track_id = {self.id} score = {self.score:.2f} bbox = {self.box}"
 
 
-class BaseTracker:
+class BaseTracker(abc.ABC):
     """The main tracking file, here is where magic happens."""
 
     def __init__(self, obj_detect):
@@ -82,13 +82,16 @@ class BaseTracker:
     def get_results(self):
         return self.results
 
-    def data_association(self, boxes, scores, frame=None):
+    @abc.abstractmethod
+    def data_association():
         raise NotImplementedError
 
-    def add(self, new_boxes, new_scores, new_features=None):
+    @abc.abstractmethod
+    def add(self, new_boxes, new_scores, new_features):
         """Initializes new Track objects and saves them."""
         raise NotImplementedError
 
+    @abc.abstractmethod
     def step(self, frame):
         """This function should be called every timestep to perform tracking with a blob
         containing the image information.
@@ -99,7 +102,7 @@ class BaseTracker:
 class Tracker(BaseTracker):
     """The main tracking file, here is where magic happens."""
 
-    def add(self, new_boxes, new_scores):
+    def add(self, new_boxes, new_scores, new_features=None):
         """Initializes new Track objects and saves them."""
         num_new = len(new_boxes)
         for i in range(num_new):
