@@ -65,7 +65,7 @@ class RandomErasing(object):
     """
 
     def __init__(
-        self, probability=0.5, sl=0.02, sh=0.4, r1=0.3, mean=[0.4914, 0.4822, 0.4465]
+        self, probability=0.5, sl=0.02, sh=0.4, r1=0.3, mean=(0.4914, 0.4822, 0.4465)
     ):
         self.probability = probability
         self.mean = mean
@@ -224,8 +224,8 @@ def build_transforms(
     height,
     width,
     transforms="random_flip",
-    norm_mean=[0.485, 0.456, 0.406],
-    norm_std=[0.229, 0.224, 0.225],
+    norm_mean=(0.485, 0.456, 0.406),
+    norm_std=(0.229, 0.224, 0.225),
     **kwargs
 ):
     """Builds train and test transform functions.

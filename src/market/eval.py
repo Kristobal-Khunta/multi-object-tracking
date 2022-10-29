@@ -3,7 +3,7 @@ from market import utils
 from market import metrics
 
 
-def evaluate(model, test_loader, metric_fn, ranks=[1, 5, 10, 20]):
+def evaluate(model, test_loader, metric_fn, ranks=(1, 5, 10, 20)):
     with torch.no_grad():
         model.eval()
         print("Extracting features from query set...")
