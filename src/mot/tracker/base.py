@@ -82,10 +82,10 @@ class BaseTracker:
     def get_results(self):
         return self.results
 
-    def data_association(self):
+    def data_association(self, boxes, scores, frame=None):
         raise NotImplementedError
 
-    def add(self, new_boxes, new_scores):
+    def add(self, new_boxes, new_scores, new_features=None):
         """Initializes new Track objects and saves them."""
         raise NotImplementedError
 
@@ -121,6 +121,7 @@ class Tracker(BaseTracker):
         # boxes, scores = frame["det"]["boxes"], frame["det"]["scores"]
         self.data_association(boxes, scores)
         self.update_results()
+
 
 ############
 class BaseReIDTracker(BaseTracker):
