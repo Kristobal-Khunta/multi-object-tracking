@@ -88,8 +88,8 @@ def build_train_sampler(
     train_sampler,
     batch_size=32,
     num_instances=4,
-    num_cams=1,
-    num_datasets=1,
+    _unused_num_cams=1,
+    _unused_num_datasets=1,
     **kwargs
 ):
     """Builds a training sampler.
