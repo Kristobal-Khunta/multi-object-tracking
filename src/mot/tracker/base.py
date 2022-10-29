@@ -152,6 +152,7 @@ class BaseReIDTracker(BaseTracker):
         # results
         self.update_results()
 
+    @staticmethod
     def get_crop_from_boxes(self, boxes, frame, height=256, width=128):
         """Crops all persons from a frame given the boxes.
         Args:
@@ -172,7 +173,8 @@ class BaseReIDTracker(BaseTracker):
 
         return person_crops
 
-    def compute_reid_features(self, model, crops):
+    @staticmethod
+    def compute_reid_features(model, crops):
         f_ = []
         model.eval()
         with torch.no_grad():

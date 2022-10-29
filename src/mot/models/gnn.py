@@ -137,6 +137,7 @@ class SimilarityNet(nn.Module):
             *[nn.Linear(edge_dim, edge_dim), nn.ReLU(), nn.Linear(edge_dim, 1)]
         )
 
+    @staticmethod
     def compute_edge_feats(self, track_coords, current_coords, track_t, curr_t):
         """
         Computes initial edge feature tensor
