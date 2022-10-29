@@ -115,7 +115,7 @@ class Dataset:
     def __len__(self):
         return len(self.data)
 
-    # scipcq
+    # skipcq
     # def __add__(self, other):
     #     """Adds two datasets together (only the train set)."""
     #     train = copy.deepcopy(self.train)
@@ -238,7 +238,7 @@ class Dataset:
 
         num_gallery_pids = self.get_num_pids(self.gallery)
         num_gallery_cams = self.get_num_cams(self.gallery)
-        # scipcq
+        # skipcq
         msg = (
             "  ----------------------------------------\n" 
             "  subset   | # ids | # items | # cameras\n"

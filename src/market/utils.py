@@ -99,7 +99,7 @@ def print_statistics(batch_idx, num_batches, epoch, max_epoch, batch_time, losse
     future_batches_left = (max_epoch - (epoch + 1)) * num_batches
     eta_seconds = batch_time.avg * (batches_left + future_batches_left)
     eta_str = str(datetime.timedelta(seconds=int(eta_seconds)))
-    #  scipcq
+    # skipcq: PYL-C0209
     print(
         "epoch: [{0}/{1}][{2}/{3}]\t"
         "time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"
