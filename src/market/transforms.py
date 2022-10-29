@@ -122,7 +122,8 @@ class ColorAugmentation(object):
         self.eig_val = torch.Tensor([[0.2175, 0.0188, 0.0045]])
 
     def _check_input(self, tensor):
-        assert tensor.dim() == 3 and tensor.size(0) == 3
+        if not (tensor.dim() == 3 and tensor.size(0) == 3):
+            raise AssertionError
 
     def __call__(self, tensor):
         if random.uniform(0, 1) > self.p:
