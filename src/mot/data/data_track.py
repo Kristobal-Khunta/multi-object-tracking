@@ -85,8 +85,7 @@ class MOT16(Dataset):
         args -- arguments used to call the dataset
         """
         train_sequences = list(listdir_nohidden(os.path.join(root_dir, "train")))
-        # test_sequences = list(listdir_nohidden(os.path.join(root_dir, 'test')))
-        # test_sequences = ['MOT16-01', 'MOT16-03', 'MOT16-08', 'MOT16-12']
+
         test_sequences = ["MOT16-01", "MOT16-08", "MOT16-12"]
         val_sequences = ["MOT16-02", "MOT16-05", "MOT16-09", "MOT16-11"]
         val_sequences2 = ["MOT16-02", "MOT16-11"]
@@ -291,8 +290,6 @@ class MOT16Sequence(Dataset):
         ./MOT16-13.txt
         ./MOT16-14.txt
         """
-
-        # format_str = "{}, -1, {}, {}, {}, {}, {}, -1, -1, -1"
 
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)

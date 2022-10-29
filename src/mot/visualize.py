@@ -207,10 +207,7 @@ def plot_sequence(tracks, db, first_n_frames=None):
                 )
 
         plt.axis("off")
-        # plt.tight_layout()
         plt.show()
-        # plt.savefig(im_output, dpi=100)
-        # plt.close()
 
         if first_n_frames is not None and first_n_frames - 1 == i:
             break
@@ -223,8 +220,7 @@ def plot_single_tracked_frame(img, img_idx, tracks):
     styles = defaultdict(lambda: next(loop_cy_iter))
 
     dpi = 300
-    fig, ax = plt.subplots(1, dpi=dpi)
-    # fig.set_size_inches(width / dpi, height / dpi)
+    _, ax = plt.subplots(1, dpi=dpi)
     ax.set_axis_off()
     ax.imshow(img)
 

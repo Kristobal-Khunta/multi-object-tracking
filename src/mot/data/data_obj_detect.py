@@ -43,7 +43,6 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
                 img_path = os.path.join(_imDir, f"{i:06d}{im_ext}")
                 if not os.path.exists(img_path):
                     raise AssertionError("Path does not exist: {img_path}")
-                # self._img_paths.append((img_path, im_width, im_height))
                 self._img_paths.append(img_path)
 
     @property
@@ -128,7 +127,6 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         # load images ad masks
         img_path = self._img_paths[idx]
-        # mask_path = os.path.join(self.root, "PedMasks", self.masks[idx])
         img = Image.open(img_path).convert("RGB")
 
         target = self._get_annotation(idx)
@@ -166,7 +164,6 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
         ./MOT17-14.txt
         """
 
-        # format_str = "{}, -1, {}, {}, {}, {}, {}, -1, -1, -1"
 
         files = {}
         for image_id, res in results.items():
@@ -302,7 +299,6 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
         # avoid divide by zero in case the first detection matches a difficult
         # ground truth (probably not needed in my code but doesn't harm if left)
         prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
-        # tmp = np.maximum(tp + fp, np.finfo(np.float64).eps)
 
         # correct AP calculation
         # first append sentinel values at the end

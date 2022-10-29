@@ -40,7 +40,6 @@ class ReIDTrackerOfflineDet(TrackerOfflineDet):
 
     def reset(self, hard=True):
         self.tracks = []
-        # self.inactive_tracks = []
 
         if hard:
             self.track_num = 0

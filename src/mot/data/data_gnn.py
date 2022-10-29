@@ -3,9 +3,6 @@ import torch
 from torch.utils.data import Dataset
 from .data_track import MOT16Sequences
 
-# sys.path.append("..")
-# sys.path.append(".")
-
 
 class LongTrackTrainingDataset(Dataset):
     # TODO: More past frames
@@ -18,7 +15,6 @@ class LongTrackTrainingDataset(Dataset):
         box_distort_perc=0.05,
         max_past_frames=10,
     ):
-        # self.sequences =  MOT16Sequences(dataset, root_dir, vis_threshold=vis_threshold)
         self.sequences = MOT16Sequences(dataset, root_dir, vis_threshold=0)
         self.db = db
         for seq in self.sequences:
@@ -49,8 +45,9 @@ class LongTrackTrainingDataset(Dataset):
         return len(self.seq_frames)
 
     def prepare_data(self, blob, seq):
-        # blob = curr_frame['gt']
-        # ids = torch.as_tensor(list(blob['gt'].keys()))
+        # if we want use raw sequences instead predefined database
+        # -> blob = curr_frame['gt']
+        # -> ids = torch.as_tensor(list(blob['gt'].keys()))
         ids = blob["ids"].tolist()
         global_ids = torch.as_tensor([self.global_ids[(str(seq), id_)] for id_ in ids])
 

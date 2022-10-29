@@ -24,10 +24,10 @@ class HardBatchMiningTripletLoss(torch.nn.Module):
         n = inputs.size(0)
 
         # Compute the pairwise euclidean distance between all n feature vectors.
+        # unclear euclidian distance
 
-        # distance_matrix = euclidean_squared_distance(inputs, inputs)
-        # distance_matrix = distance_matrix.clamp(min=1e-12).sqrt()
-        distance_matrix = torch.cdist(inputs, inputs, p=2.0)  # clear euclidian dist
+        # clear euclidian dist
+        distance_matrix = torch.cdist(inputs, inputs, p=2.0)
 
         # For each sample (image), find the hardest positive and hardest negative sample.
         # The targets are a vector that encode the class label for each of the n samples.
