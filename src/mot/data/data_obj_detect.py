@@ -180,7 +180,7 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
             outfile = osp.join(output_dir, out)
 
             # check if out in keys and create empty list if not
-            if outfile not in files.keys():
+            if outfile not in files:
                 files[outfile] = []
 
             for box, score in zip(res["boxes"], res["scores"]):
