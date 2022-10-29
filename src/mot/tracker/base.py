@@ -10,7 +10,7 @@ import abc
 mm.lap.default_solver = "lap"
 
 
-class Track(object):
+class Track():
     """This class contains all necessary for every individual track."""
 
     def __init__(self, box, score, track_id, feature=None, inactive=0):

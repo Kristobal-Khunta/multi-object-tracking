@@ -58,7 +58,7 @@ class HardBatchMiningTripletLoss(torch.nn.Module):
         return self.ranking_loss(distance_negative_pairs, distance_positive_pairs, y)
 
 
-class CombinedLoss(object):
+class CombinedLoss():
     def __init__(self, margin=0.3, weight_triplet=1.0, weight_ce=1.0):
         super(CombinedLoss, self).__init__()
         self.triplet_loss = HardBatchMiningTripletLoss()

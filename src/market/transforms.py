@@ -14,7 +14,7 @@ from torchvision.transforms import (
 )
 
 
-class Random2DTranslation(object):
+class Random2DTranslation():
     """Randomly translates the input image with a probability.
     Specifically, given a predefined shape (height, width), the input is first
     resized with a factor of 1.125, leading to (height*1.125, width*1.125), then
@@ -50,7 +50,7 @@ class Random2DTranslation(object):
         return croped_img
 
 
-class RandomErasing(object):
+class RandomErasing():
     """Randomly erases an image patch.
     Origin: `<https://github.com/zhunzhong07/Random-Erasing>`_
     Reference:
@@ -100,7 +100,7 @@ class RandomErasing(object):
         return img
 
 
-class ColorAugmentation(object):
+class ColorAugmentation():
     """Randomly alters the intensities of RGB channels.
     Reference:
         Krizhevsky et al. ImageNet Classification with Deep ConvolutionalNeural
@@ -134,7 +134,7 @@ class ColorAugmentation(object):
         return tensor
 
 
-class RandomPatch(object):
+class RandomPatch():
     """Random patch data augmentation.
     There is a patch pool that stores randomly extracted pathces from person images.
 
