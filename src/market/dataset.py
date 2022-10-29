@@ -323,12 +323,12 @@ class ImageDataset(Dataset):
             )
         )
         print(
-            "  query    | {:5d} | {:8d} | {:9d}".format(
+            "  query    | {:5d} | {:8d} | {:9d}".format(  # skipcq: PYL-C0209
                 num_query_pids, len(self.query), num_query_cams
             )
         )
         print(
-            "  gallery  | {:5d} | {:8d} | {:9d}".format(
+            "  gallery  | {:5d} | {:8d} | {:9d}".format(  
                 num_gallery_pids, len(self.gallery), num_gallery_cams
             )
         )
