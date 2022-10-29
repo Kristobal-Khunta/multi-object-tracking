@@ -51,8 +51,8 @@ class IoUTracker(Tracker):
 
 
 class HungarianIoUTracker(Tracker):
-    def __init__(self, unmatched_cost=255.0, *args, **kwargs):
-        self._UNMATCHED_COST = unmatched_cost
+    def __init__(self, *args, **kwargs):
+        self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores):
@@ -175,8 +175,8 @@ class HungarianIoUTracker(Tracker):
 
 
 class ReIDHungarianIoUTracker(BaseReIDTracker):
-    def __init__(self, reid_model, unmatched_cost=255.0, *args, **kwargs):
-        self._UNMATCHED_COST = unmatched_cost
+    def __init__(self, reid_model, *args, **kwargs):
+        self._UNMATCHED_COST = 255.0
         self.reid_model = reid_model
         super().__init__(*args, **kwargs)
 
@@ -245,7 +245,7 @@ class ReIDHungarianIoUTracker(BaseReIDTracker):
 
 
 class MPNTracker(ReIDHungarianIoUTracker):
-    def __init__(self, refine_gnn_net, device="cuda", *args, **kwargs):
+    def __init__(self, refine_gnn_net, *args, device="cuda", **kwargs):
         self.refine_gnn_net = refine_gnn_net
         self.device = device
         super().__init__(*args, **kwargs)

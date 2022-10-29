@@ -24,8 +24,8 @@ class TrackerOfflineDet(Tracker):
 
 
 class ReIDTrackerOfflineDet(TrackerOfflineDet):
-    def __init__(self, unmatched_cost=255.0, *args, **kwargs):
-        self._UNMATCHED_COST = unmatched_cost
+    def __init__(self, *args, **kwargs):
+        self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
 
     def add(self, new_boxes, new_scores, new_features):
@@ -215,7 +215,7 @@ class LongTermReIDHungarianTrackerOfflineDet(ReIDHungarianTrackerOfflineDet):
 
 
 class MPNTrackerOfflineDet(LongTermReIDHungarianTrackerOfflineDet):
-    def __init__(self, similarity_net, device="cuda", *args, **kwargs):
+    def __init__(self, similarity_net, *args, device="cuda", **kwargs):
         self.similarity_net = similarity_net
         self.device = device
         super().__init__(*args, **kwargs)
