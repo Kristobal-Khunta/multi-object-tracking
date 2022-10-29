@@ -240,7 +240,7 @@ class Dataset:
         num_gallery_cams = self.get_num_cams(self.gallery)
         # scipcq
         msg = (
-            "  ----------------------------------------\n"
+            "  ----------------------------------------\n" 
             "  subset   | # ids | # items | # cameras\n"
             "  ----------------------------------------\n"
             "  train    | {:5d} | {:7d} | {:9d}\n"
