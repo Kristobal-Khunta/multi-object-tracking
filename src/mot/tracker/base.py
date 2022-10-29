@@ -83,11 +83,11 @@ class BaseTracker(abc.ABC):
         return self.results
 
     @abc.abstractmethod
-    def data_association():
+    def data_association(self):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def add(self, new_boxes, new_scores, new_features):
+    def add(self):
         """Initializes new Track objects and saves them."""
         raise NotImplementedError
 
@@ -102,7 +102,7 @@ class BaseTracker(abc.ABC):
 class Tracker(BaseTracker):
     """The main tracking file, here is where magic happens."""
 
-    def add(self, new_boxes, new_scores, new_features=None):
+    def add(self, new_boxes, new_scores,):
         """Initializes new Track objects and saves them."""
         num_new = len(new_boxes)
         for i in range(num_new):
