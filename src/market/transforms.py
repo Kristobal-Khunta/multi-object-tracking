@@ -173,7 +173,7 @@ class RandomPatch:
 
     def generate_wh(self, W, H):
         area = W * H
-        for attempt in range(100):
+        for attempt in range(100):  # skipcq: PYL-W0612
             target_area = (
                 random.uniform(self.patch_min_area, self.patch_max_area) * area
             )

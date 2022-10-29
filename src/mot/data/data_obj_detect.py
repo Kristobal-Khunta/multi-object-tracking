@@ -314,7 +314,7 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
 
         # and sum (\Delta recall) * prec
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
-
+        # skipcq: PYL-W0127  # Assigning the same variable 'ap' to itself
         tp, fp, prec, rec, ap = np.max(tp), np.max(fp), prec[-1], np.max(rec), ap
 
         print(f"AP: {ap} Prec: {prec} Rec: {rec} TP: {tp} FP: {fp}")
