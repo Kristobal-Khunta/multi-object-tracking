@@ -7,6 +7,7 @@ import torch.nn.functional as F
 import torchvision.transforms.functional as TF
 import market.metrics as metrics
 import abc
+
 mm.lap.default_solver = "lap"
 
 
@@ -42,8 +43,7 @@ class Track:
 class BaseTracker(abc.ABC):
     """The main tracking file, here is where magic happens."""
 
-    def __init__(self, obj_detect):
-        self.obj_detect = obj_detect
+    def __init__(self):
         self.tracks = []
         self.track_num = 0
         self.im_index = 0
@@ -102,7 +102,20 @@ class BaseTracker(abc.ABC):
 class Tracker(BaseTracker):
     """The main tracking file, here is where magic happens."""
 
-    def add(self, new_boxes, new_scores,):
+    def __init__(self, obj_detect, *args, **kwargs):
+        self.obj_detect = obj_detect
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        super().__init__(*args, **kwargs)
+
+    def add(
+        self,
+        new_boxes,
+        new_scores,
+    ):
         """Initializes new Track objects and saves them."""
         num_new = len(new_boxes)
         for i in range(num_new):
@@ -128,7 +141,13 @@ class Tracker(BaseTracker):
 
 ############
 class BaseReIDTracker(BaseTracker):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, obj_detect, *args, **kwargs):
+        self.obj_detect = obj_detect
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
         self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
 
@@ -158,7 +177,7 @@ class BaseReIDTracker(BaseTracker):
     @staticmethod
     def get_crop_from_boxes(boxes, frame, height=256, width=128):
         """Crops all persons from a frame given the boxes.
-        Args:   
+        Args:
                 boxes: The bounding boxes.
                 frame: The current frame.
                 height (int, optional): [description]. Defaults to 256.

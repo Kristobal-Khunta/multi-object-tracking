@@ -9,6 +9,15 @@ from scipy.optimize import linear_sum_assignment as linear_assignment
 
 # tracker
 class IoUTracker(Tracker):
+    def __init__(self, obj_detect, *args, **kwargs):
+        self.obj_detect = obj_detect
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        super().__init__(*args, **kwargs)
+
     def data_association(self, boxes, scores):
         # self.im_index - index of current proceeded image
         # num existing tracks = self.tracks = 0 at first step
@@ -51,7 +60,13 @@ class IoUTracker(Tracker):
 
 
 class HungarianIoUTracker(Tracker):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, obj_detect, *args, **kwargs):
+        self.obj_detect = obj_detect
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
         self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
 
@@ -175,9 +190,15 @@ class HungarianIoUTracker(Tracker):
 
 
 class ReIDHungarianIoUTracker(BaseReIDTracker):
-    def __init__(self, reid_model, *args, **kwargs):
-        self._UNMATCHED_COST = 255.0
+    def __init__(self, obj_detect, reid_model, *args, **kwargs):
+        self.obj_detect = obj_detect
         self.reid_model = reid_model
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, frame):
@@ -245,9 +266,20 @@ class ReIDHungarianIoUTracker(BaseReIDTracker):
 
 
 class MPNTracker(ReIDHungarianIoUTracker):
-    def __init__(self, refine_gnn_net, *args, device="cuda", **kwargs):
+    def __init__(
+        self, obj_detect, reid_model, refine_gnn_net, *args, device="cuda", **kwargs
+    ):
+        self.obj_detect = obj_detect
+        self.reid_model = reid_model
         self.refine_gnn_net = refine_gnn_net
         self.device = device
+        self._UNMATCHED_COST = 255.0
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, frame):  # pred_features
