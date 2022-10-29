@@ -74,7 +74,7 @@ class MetricMeter:
         for name, meter in self.meters.items():
             output_str.append(
                 "{} {:.4f} ({:.4f})".format(name, meter.val, meter.avg)
-            )  # scipcq
+            )  # skipcq: PYL-C0209
         return self.delimiter.join(output_str)
 
 
