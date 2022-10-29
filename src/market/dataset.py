@@ -185,7 +185,7 @@ class Dataset(object):
 
     def show_summary(self):
         """Shows dataset statistics."""
-        pass
+        raise NotImplementedError(f"Not implemented in {self}")
 
     def combine_all(self):
         """Combines train, query and gallery in a dataset for training."""
