@@ -69,10 +69,11 @@ class MetricMeter:
                 v = v.item()
             self.meters[k].update(v)
 
-    # scipcq: PYL-C0209
+    
     def __str__(self):
         output_str = []
         for name, meter in self.meters.items():
+            # scipcq: PYL-C0209
             output_str.append("{} {:.4f} ({:.4f})".format(name, meter.val, meter.avg))
         return self.delimiter.join(output_str)
 
@@ -98,12 +99,12 @@ def print_statistics(batch_idx, num_batches, epoch, max_epoch, batch_time, losse
     future_batches_left = (max_epoch - (epoch + 1)) * num_batches
     eta_seconds = batch_time.avg * (batches_left + future_batches_left)
     eta_str = str(datetime.timedelta(seconds=int(eta_seconds)))
-    # scipcq: PYL-C0209
+
     print(
-        "epoch: [{0}/{1}][{2}/{3}]\t"
-        "time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"
-        "eta {eta}\t"
-        "{losses}\t".format(
+        "epoch: [{0}/{1}][{2}/{3}]\t"  # scipcq: PYL-C0209
+        "time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"  # scipcq: PYL-C0209
+        "eta {eta}\t"  # scipcq: PYL-C0209
+        "{losses}\t".format(  # scipcq: PYL-C0209
             epoch + 1,
             max_epoch,
             batch_idx + 1,
@@ -111,5 +112,5 @@ def print_statistics(batch_idx, num_batches, epoch, max_epoch, batch_time, losse
             batch_time=batch_time,
             eta=eta_str,
             losses=losses,
-        )
-    )  
+        )  # scipcq: PYL-C0209
+    )  # scipcq: PYL-C0209
