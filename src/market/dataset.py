@@ -318,7 +318,7 @@ class ImageDataset(Dataset):
         print("  subset   | # ids | # images | # cameras")
         print("  ----------------------------------------")
         print(
-            "  train    | {:5d} | {:8d} | {:9d}".format(
+            "  train    | {:5d} | {:8d} | {:9d}".format( # skipcq: PYL-C0209
                 num_train_pids, len(self.train), num_train_cams
             )
         )
@@ -328,7 +328,7 @@ class ImageDataset(Dataset):
             )
         )
         print(
-            "  gallery  | {:5d} | {:8d} | {:9d}".format(  
+            "  gallery  | {:5d} | {:8d} | {:9d}".format(  # skipcq: PYL-C0209
                 num_gallery_pids, len(self.gallery), num_gallery_cams
             )
         )
