@@ -167,11 +167,12 @@ class MOT16Sequence(Dataset):
 
         img = self.transforms(img)
 
-        sample = {}
-        sample["img"] = img
-        sample["img_path"] = data["im_path"]
-        sample["gt"] = data["gt"]
-        sample["vis"] = data["vis"]
+        sample = {
+            "img": img,
+            "img_path": data["im_path"],
+            "gt": data["gt"],
+            "vis": data["vis"],
+        }
 
         # segmentation
         if data["seg_img"] is not None:
@@ -249,9 +250,13 @@ class MOT16Sequence(Dataset):
         for i in range(1, seqLength + 1):
             img_path = osp.join(img_dir, f"{i:06d}.jpg")
 
-            datum = {"gt": boxes[i], "im_path": img_path, "vis": visibility[i]}
+            datum = {
+                "gt": boxes[i],
+                "im_path": img_path,
+                "vis": visibility[i],
+                "seg_img": None,
+            }
 
-            datum["seg_img"] = None
             if seg_imgs:
                 datum["seg_img"] = seg_imgs[i]
 
