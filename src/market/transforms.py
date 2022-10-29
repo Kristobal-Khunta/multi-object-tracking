@@ -121,7 +121,7 @@ class ColorAugmentation:
         )
         self.eig_val = torch.Tensor([[0.2175, 0.0188, 0.0045]])
 
-    def _check_input(self, tensor):
+    def _check_input(self, tensor):  # skipcq: PYL-R0201
         if not (tensor.dim() == 3 and tensor.size(0) == 3):
             raise AssertionError
 
