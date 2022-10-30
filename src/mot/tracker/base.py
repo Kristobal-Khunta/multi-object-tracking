@@ -83,7 +83,7 @@ class BaseTracker(abc.ABC):
         return self.results
 
     @abc.abstractmethod
-    def data_association(self):
+    def data_association(self, boxes, scores, frame=None):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -118,7 +118,7 @@ class Tracker(BaseTracker):
             self.tracks.append(Track(new_boxes[i], new_scores[i], self.track_num + i))
         self.track_num += num_new
 
-    def data_association(self, boxes, scores):
+    def data_association(self, boxes, scores, frame=None):
         self.tracks = []
         self.add(boxes, scores)
 
