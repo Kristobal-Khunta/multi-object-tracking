@@ -72,9 +72,12 @@ class MetricMeter:
     def __str__(self):
         output_str = []
         for name, meter in self.meters.items():
+            # skipcq: PYL-C0209
             output_str.append(
-                "{} {:.4f} ({:.4f})".format(name, meter.val, meter.avg)
-            )  # skipcq: PYL-C0209
+                "{} {:.4f} ({:.4f})".format(  # skipcq: PYL-C0209
+                    name, meter.val, meter.avg
+                )
+            )
         return self.delimiter.join(output_str)
 
 
@@ -101,7 +104,7 @@ def print_statistics(batch_idx, num_batches, epoch, max_epoch, batch_time, losse
     eta_str = str(datetime.timedelta(seconds=int(eta_seconds)))
     # skipcq: PYL-C0209
     print(
-        "epoch: [{0}/{1}][{2}/{3}]\t"
+        "epoch: [{0}/{1}][{2}/{3}]\t"  # skipcq: PYL-C0209
         "time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"
         "eta {eta}\t"
         "{losses}\t".format(
