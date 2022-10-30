@@ -87,7 +87,7 @@ class BaseTracker(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def add():
+    def add(self, new_boxes, new_scores, new_features):
         """Initializes new Track objects and saves them."""
         raise NotImplementedError
 
@@ -111,11 +111,7 @@ class Tracker(BaseTracker):
         self.mot_accum = None
         super().__init__(*args, **kwargs)
 
-    def add(
-        self,
-        new_boxes,
-        new_scores,
-    ):
+    def add(self, new_boxes, new_scores, new_features=None):
         """Initializes new Track objects and saves them."""
         num_new = len(new_boxes)
         for i in range(num_new):
