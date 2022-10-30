@@ -87,7 +87,7 @@ class BaseTracker(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def add(self, *args):
+    def add():
         """Initializes new Track objects and saves them."""
         raise NotImplementedError
 
