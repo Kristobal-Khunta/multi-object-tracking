@@ -83,7 +83,7 @@ class BaseTracker(abc.ABC):
         return self.results
 
     @abc.abstractmethod
-    def data_association(self, boxes, scores, frame=None):
+    def data_association(self, boxes, scores, frame):
         raise NotImplementedError
 
     @abc.abstractmethod
