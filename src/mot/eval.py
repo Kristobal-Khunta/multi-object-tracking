@@ -10,9 +10,7 @@ from torch.utils.data import DataLoader
 def get_mot_accum(results, seq):
     mot_accum = mm.MOTAccumulator(auto_id=True)
 
-    # for i, data in enumerate(seq):
     for i in range(len(seq)):
-        # data = self.data[idx]
         gt = seq.data[i]["gt"]
         gt_ids = []
         if gt:
@@ -40,7 +38,7 @@ def get_mot_accum(results, seq):
         for track_id, frames in results.items():
             if i in frames:
                 track_ids.append(track_id)
-                # frames = x1, y1, x2, y2, score
+                # frames = x1, y1, x2, y2, score  # skipcq: PY-W0069
                 track_boxes.append(frames[i][:4])
 
         if track_ids:
@@ -102,21 +100,17 @@ def evaluate_obj_detect(model, data_loader):
     data_loader.dataset.print_eval(results)
 
 
-#####
 def run_tracker(val_sequences, db, tracker, output_dir=None):
     time_total = 0
     mot_accums = []
     results_seq = {}
     for seq in val_sequences:
-        # break
         tracker.reset()
         now = time.time()
 
         print(f"Tracking: {seq}")
 
-        # data_loader = DataLoader(seq, batch_size=1, shuffle=False)
         with torch.no_grad():
-            # for i, frame in enumerate(tqdm(data_loader)):
             for frame in db[str(seq)]:
                 tracker.step(frame)
 
@@ -146,10 +140,7 @@ def run_tracker(val_sequences, db, tracker, output_dir=None):
         )
 
 
-def run_tracker_raw_seq(
-    sequences,
-    tracker,
-):
+def run_tracker_raw_seq(sequences, tracker, output_dir=None):
     time_total = 0
     mot_accums = []
     results_seq = {}
@@ -160,9 +151,9 @@ def run_tracker_raw_seq(
         print(f"Tracking: {seq}")
 
         data_loader = DataLoader(seq, batch_size=1, shuffle=False)
-
-        for frame in tqdm(data_loader):
-            tracker.step(frame)
+        with torch.no_grad():
+            for frame in tqdm(data_loader):
+                tracker.step(frame)
         results = tracker.get_results()
         results_seq[str(seq)] = results
 
@@ -176,7 +167,9 @@ def run_tracker_raw_seq(
         print(f"Tracks found: {len(results)}")
         print(f"Runtime for {seq}: {time.time() - now:.1f} s.")
 
-        # seq.write_results(results, os.path.join(output_dir))
+        if output_dir is not None:
+            os.makedirs(output_dir, exist_ok=True)
+            seq.write_results(results, os.path.join(output_dir))
 
     print(f"Runtime for all sequences: {time_total:.1f} s.")
     if mot_accums:

@@ -164,16 +164,10 @@ def plot_sequence(tracks, db, first_n_frames=None):
         tracks (dict): The dictionary containing the track dictionaries in the form tracks[track_id][frame] = bb
         db (torch.utils.data.Dataset): The dataset with the images belonging to the tracks (e.g. MOT_Sequence object)
     """
-
-    # print("[*] Plotting whole sequence to {}".format(output_dir))
-
-    # if not osp.exists(output_dir):
-    # 	os.makedirs(output_dir)
-
     # infinite color loop
     cyl = cy("ec", colors)
     loop_cy_iter = cyl()
-    styles = defaultdict(lambda: next(loop_cy_iter))
+    styles = defaultdict(lambda: next(loop_cy_iter))  # skipcq: PTC-W0063
 
     for i, v in enumerate(db):
         img = v["img"].mul(255).permute(1, 2, 0).byte().numpy()
@@ -213,10 +207,7 @@ def plot_sequence(tracks, db, first_n_frames=None):
                 )
 
         plt.axis("off")
-        # plt.tight_layout()
         plt.show()
-        # plt.savefig(im_output, dpi=100)
-        # plt.close()
 
         if first_n_frames is not None and first_n_frames - 1 == i:
             break
@@ -226,11 +217,10 @@ def plot_sequence(tracks, db, first_n_frames=None):
 def plot_single_tracked_frame(img, img_idx, tracks):
     cyl = cy("ec", colors)
     loop_cy_iter = cyl()
-    styles = defaultdict(lambda: next(loop_cy_iter))
+    styles = defaultdict(lambda: next(loop_cy_iter))  # skipcq: PTC-W0063
 
     dpi = 300
-    fig, ax = plt.subplots(1, dpi=dpi)
-    # fig.set_size_inches(width / dpi, height / dpi)
+    _, ax = plt.subplots(1, dpi=dpi)
     ax.set_axis_off()
     ax.imshow(img)
 

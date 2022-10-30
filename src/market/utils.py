@@ -8,7 +8,7 @@ import numpy as np
 __all__ = ["AverageMeter", "MetricMeter"]
 
 
-class AverageMeter(object):
+class AverageMeter:
     """Computes and stores the average and current value.
 
     Examples::
@@ -19,7 +19,11 @@ class AverageMeter(object):
     """
 
     def __init__(self):
-        self.reset()
+        self.val = 0
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+        # not need to use self.reset()
 
     def reset(self):
         self.val = 0
@@ -34,7 +38,7 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-class MetricMeter(object):
+class MetricMeter:
     """A collection of metrics.
 
     Source: https://github.com/KaiyangZhou/Dassl.pytorch
@@ -68,7 +72,9 @@ class MetricMeter(object):
     def __str__(self):
         output_str = []
         for name, meter in self.meters.items():
-            output_str.append("{} {:.4f} ({:.4f})".format(name, meter.val, meter.avg))
+            output_str.append(
+                "{} {:.4f} ({:.4f})".format(name, meter.val, meter.avg)
+            )  # skipcq: PYL-C0209
         return self.delimiter.join(output_str)
 
 
@@ -93,6 +99,7 @@ def print_statistics(batch_idx, num_batches, epoch, max_epoch, batch_time, losse
     future_batches_left = (max_epoch - (epoch + 1)) * num_batches
     eta_seconds = batch_time.avg * (batches_left + future_batches_left)
     eta_str = str(datetime.timedelta(seconds=int(eta_seconds)))
+    # skipcq: PYL-C0209
     print(
         "epoch: [{0}/{1}][{2}/{3}]\t"
         "time {batch_time.val:.3f} ({batch_time.avg:.3f})\t"

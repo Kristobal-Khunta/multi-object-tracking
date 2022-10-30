@@ -3,14 +3,21 @@ import numpy as np
 import torch
 from scipy.optimize import linear_sum_assignment as linear_assignment
 
-from mot.tracker.base import Track, Tracker
+from mot.tracker.base import Track, BaseTracker
 from mot.utils import cosine_distance, ltrb_to_ltwh
 import market.metrics as metrics
 
 mm.lap.default_solver = "lap"
 
 
-class TrackerOfflineDet(Tracker):
+class TrackerOfflineDet(BaseTracker):
+    def __init__(self):
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+
     def step(self, frame):
         """This function should be called every timestep to perform tracking with a blob
         containing the image information.
@@ -24,8 +31,13 @@ class TrackerOfflineDet(Tracker):
 
 
 class ReIDTrackerOfflineDet(TrackerOfflineDet):
-    def __init__(self, unmatched_cost=255.0, *args, **kwargs):
-        self._UNMATCHED_COST = unmatched_cost
+    def __init__(self, *args, **kwargs):
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
 
     def add(self, new_boxes, new_scores, new_features):
@@ -40,7 +52,6 @@ class ReIDTrackerOfflineDet(TrackerOfflineDet):
 
     def reset(self, hard=True):
         self.tracks = []
-        # self.inactive_tracks = []
 
         if hard:
             self.track_num = 0
@@ -77,8 +88,10 @@ class ReIDTrackerOfflineDet(TrackerOfflineDet):
         appearance_distance = appearance_distance.numpy() * 0.5
         # return appearance_distance
 
-        assert np.alltrue(appearance_distance >= -0.1)
-        assert np.alltrue(appearance_distance <= 1.1)
+        if not np.alltrue(appearance_distance >= -0.1):
+            raise AssertionError
+        if not np.alltrue(appearance_distance <= 1.1):
+            raise AssertionError
 
         combined_costs = alpha * distance + (1 - alpha) * appearance_distance
 
@@ -91,6 +104,15 @@ class ReIDTrackerOfflineDet(TrackerOfflineDet):
 
 
 class ReIDHungarianTrackerOfflineDet(ReIDTrackerOfflineDet):
+    def __init__(self, *args, **kwargs):
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        self._UNMATCHED_COST = 255.0
+        super().__init__(*args, **kwargs)
+
     def data_association(self, boxes, scores, pred_features):
         """Refactored from previous implementation to split it onto distance computation and track management"""
         if self.tracks:
@@ -150,12 +172,18 @@ class LongTermReIDHungarianTrackerOfflineDet(ReIDHungarianTrackerOfflineDet):
     def __init__(self, patience, *args, **kwargs):
         """Add a patience parameter"""
         self.patience = patience
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
 
     def update_results(self):
         """Only store boxes for tracks that are active"""
         for t in self.tracks:
-            if t.id not in self.results.keys():
+            if t.id not in self.results:
                 self.results[t.id] = {}
             if t.inactive == 0:
                 self.results[t.id][self.im_index] = np.concatenate(
@@ -211,12 +239,21 @@ class LongTermReIDHungarianTrackerOfflineDet(ReIDHungarianTrackerOfflineDet):
 
 
 ############
+# Tracker based on graph neural network
+############
 
 
 class MPNTrackerOfflineDet(LongTermReIDHungarianTrackerOfflineDet):
-    def __init__(self, similarity_net, device="cuda", *args, **kwargs):
+    def __init__(self, similarity_net, patience, *args, device="cuda", **kwargs):
         self.similarity_net = similarity_net
+        self.patience = patience
         self.device = device
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, pred_features):

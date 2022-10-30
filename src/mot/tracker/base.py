@@ -6,11 +6,12 @@ import torch
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
 import market.metrics as metrics
+import abc
 
 mm.lap.default_solver = "lap"
 
 
-class Track(object):
+class Track:
     """This class contains all necessary for every individual track."""
 
     def __init__(self, box, score, track_id, feature=None, inactive=0):
@@ -39,11 +40,10 @@ class Track(object):
         return f"track_id = {self.id} score = {self.score:.2f} bbox = {self.box}"
 
 
-class BaseTracker:
+class BaseTracker(abc.ABC):
     """The main tracking file, here is where magic happens."""
 
-    def __init__(self, obj_detect):
-        self.obj_detect = obj_detect
+    def __init__(self):
         self.tracks = []
         self.track_num = 0
         self.im_index = 0
@@ -71,7 +71,7 @@ class BaseTracker:
     def update_results(self):
         # results
         for t in self.tracks:
-            if t.id not in self.results.keys():
+            if t.id not in self.results:
                 self.results[t.id] = {}
             self.results[t.id][self.im_index] = np.concatenate(
                 [t.box.cpu().numpy(), np.array([t.score])]
@@ -82,31 +82,43 @@ class BaseTracker:
     def get_results(self):
         return self.results
 
-    def data_association(self):
-        return NotImplemented
+    @abc.abstractmethod
+    def data_association(self, boxes, scores, frame):
+        raise NotImplementedError
 
-    def add(self, new_boxes, new_scores):
+    @abc.abstractmethod
+    def add(self, new_boxes, new_scores, new_features):
         """Initializes new Track objects and saves them."""
-        return NotImplemented
+        raise NotImplementedError
 
+    @abc.abstractmethod
     def step(self, frame):
         """This function should be called every timestep to perform tracking with a blob
         containing the image information.
         """
-        return NotImplemented
+        raise NotImplementedError
 
 
 class Tracker(BaseTracker):
     """The main tracking file, here is where magic happens."""
 
-    def add(self, new_boxes, new_scores):
+    def __init__(self, obj_detect, *args, **kwargs):
+        self.obj_detect = obj_detect
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        super().__init__(*args, **kwargs)
+
+    def add(self, new_boxes, new_scores, new_features=None):
         """Initializes new Track objects and saves them."""
         num_new = len(new_boxes)
         for i in range(num_new):
             self.tracks.append(Track(new_boxes[i], new_scores[i], self.track_num + i))
         self.track_num += num_new
 
-    def data_association(self, boxes, scores):
+    def data_association(self, boxes, scores, frame=None):
         self.tracks = []
         self.add(boxes, scores)
 
@@ -125,12 +137,18 @@ class Tracker(BaseTracker):
 
 ############
 class BaseReIDTracker(BaseTracker):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, obj_detect, *args, **kwargs):
+        self.obj_detect = obj_detect
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
         self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, frame):
-        return NotImplemented
+        raise NotImplementedError
 
     def add(self, new_boxes, new_scores, new_features):
         """Initializes new Track objects and saves them."""
@@ -152,7 +170,8 @@ class BaseReIDTracker(BaseTracker):
         # results
         self.update_results()
 
-    def get_crop_from_boxes(self, boxes, frame, height=256, width=128):
+    @staticmethod
+    def get_crop_from_boxes(boxes, frame, height=256, width=128):
         """Crops all persons from a frame given the boxes.
         Args:
                 boxes: The bounding boxes.
@@ -172,7 +191,8 @@ class BaseReIDTracker(BaseTracker):
 
         return person_crops
 
-    def compute_reid_features(self, model, crops):
+    @staticmethod
+    def compute_reid_features(model, crops):
         f_ = []
         model.eval()
         with torch.no_grad():
@@ -199,8 +219,10 @@ class BaseReIDTracker(BaseTracker):
         appearance_distance = appearance_distance.numpy() * 0.5
         # return appearance_distance
 
-        assert np.alltrue(appearance_distance >= -0.1)
-        assert np.alltrue(appearance_distance <= 1.1)
+        if not np.alltrue(appearance_distance >= -0.1):
+            raise AssertionError
+        if not np.alltrue(appearance_distance <= 1.1):
+            raise AssertionError
 
         combined_costs = alpha * distance + (1 - alpha) * appearance_distance
 

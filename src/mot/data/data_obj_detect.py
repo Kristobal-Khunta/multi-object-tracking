@@ -28,9 +28,8 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
             path = os.path.join(root, f)
             config_file = os.path.join(path, "seqinfo.ini")
 
-            assert os.path.exists(config_file), "Path does not exist: {}".format(
-                config_file
-            )
+            if not os.path.exists(config_file):
+                raise AssertionError(f"Path does not exist: {config_file}")
 
             config = configparser.ConfigParser()
             config.read(config_file)
@@ -42,8 +41,8 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
 
             for i in range(1, seq_len + 1):
                 img_path = os.path.join(_imDir, f"{i:06d}{im_ext}")
-                assert os.path.exists(img_path), "Path does not exist: {img_path}"
-                # self._img_paths.append((img_path, im_width, im_height))
+                if not os.path.exists(img_path):
+                    raise AssertionError("Path does not exist: {img_path}")
                 self._img_paths.append(img_path)
 
     @property
@@ -73,7 +72,8 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
             os.path.dirname(os.path.dirname(img_path)), "gt", "gt.txt"
         )
 
-        assert os.path.exists(gt_file), "GT file does not exist: {}".format(gt_file)
+        if not os.path.exists(gt_file):
+            raise AssertionError(f"GT file does not exist: {gt_file}")
 
         bounding_boxes = []
 
@@ -127,7 +127,6 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         # load images ad masks
         img_path = self._img_paths[idx]
-        # mask_path = os.path.join(self.root, "PedMasks", self.masks[idx])
         img = Image.open(img_path).convert("RGB")
 
         target = self._get_annotation(idx)
@@ -165,8 +164,6 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
         ./MOT17-14.txt
         """
 
-        # format_str = "{}, -1, {}, {}, {}, {}, {}, -1, -1, -1"
-
         files = {}
         for image_id, res in results.items():
             path = self._img_paths[image_id]
@@ -182,7 +179,7 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
             outfile = osp.join(output_dir, out)
 
             # check if out in keys and create empty list if not
-            if outfile not in files.keys():
+            if outfile not in files:
                 files[outfile] = []
 
             for box, score in zip(res["boxes"], res["scores"]):
@@ -301,7 +298,6 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
         # avoid divide by zero in case the first detection matches a difficult
         # ground truth (probably not needed in my code but doesn't harm if left)
         prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
-        # tmp = np.maximum(tp + fp, np.finfo(np.float64).eps)
 
         # correct AP calculation
         # first append sentinel values at the end
@@ -318,7 +314,7 @@ class MOT16ObjDetect(torch.utils.data.Dataset):
 
         # and sum (\Delta recall) * prec
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
-
+        # skipcq: PYL-W0127  # Assigning the same variable 'ap' to itself
         tp, fp, prec, rec, ap = np.max(tp), np.max(fp), prec[-1], np.max(rec), ap
 
         print(f"AP: {ap} Prec: {prec} Rec: {rec} TP: {tp} FP: {fp}")

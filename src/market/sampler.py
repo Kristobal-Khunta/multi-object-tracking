@@ -25,8 +25,8 @@ class RandomIdentitySampler(Sampler):
     def __init__(self, data_source, batch_size, num_instances):
         if batch_size < num_instances:
             raise ValueError(
-                "batch_size={} must be no less "
-                "than num_instances={}".format(batch_size, num_instances)
+                f"batch_size={batch_size} must be no less "
+                f"than num_instances={num_instances}"
             )
 
         self.data_source = data_source
@@ -38,7 +38,8 @@ class RandomIdentitySampler(Sampler):
             pid = items[1]
             self.index_dic[pid].append(index)
         self.pids = list(self.index_dic.keys())
-        assert len(self.pids) >= self.num_pids_per_batch
+        if len(self.pids) < self.num_pids_per_batch:
+            raise AssertionError
 
         # estimate number of examples in an epoch
         # TODO: improve precision
@@ -87,8 +88,8 @@ def build_train_sampler(
     train_sampler,
     batch_size=32,
     num_instances=4,
-    num_cams=1,
-    num_datasets=1,
+    _unused_num_cams=1,
+    _unused_num_datasets=1,
     **kwargs
 ):
     """Builds a training sampler.
@@ -103,11 +104,10 @@ def build_train_sampler(
         num_datasets (int, optional): number of datasets to sample in a batch (when
             using ``RandomDatasetSampler``). Default is 1.
     """
-    assert (
-        train_sampler in AVAI_SAMPLERS
-    ), "train_sampler must be one of {}, but got {}".format(
-        AVAI_SAMPLERS, train_sampler
-    )
+    if (
+        train_sampler not in AVAI_SAMPLERS
+    ):
+        raise AssertionError(f"train_sampler must be one of {AVAI_SAMPLERS}, but got {train_sampler}")
 
     if train_sampler == "RandomIdentitySampler":
         sampler = RandomIdentitySampler(data_source, batch_size, num_instances)

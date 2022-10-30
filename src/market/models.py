@@ -191,7 +191,7 @@ class ResNet(nn.Module):
         last_stride=2,
         fc_dims=None,
         dropout_p=None,
-        **kwargs
+        **kwargs,
     ):
         super(ResNet, self).__init__()
         if norm_layer is None:
@@ -208,7 +208,7 @@ class ResNet(nn.Module):
         if len(replace_stride_with_dilation) != 3:
             raise ValueError(
                 "replace_stride_with_dilation should be None "
-                "or a 3-element tuple, got {}".format(replace_stride_with_dilation)
+                f"or a 3-element tuple, got {replace_stride_with_dilation}"
             )
         self.groups = groups
         self.base_width = width_per_group
@@ -300,9 +300,10 @@ class ResNet(nn.Module):
             self.feature_dim = input_dim
             return None
 
-        assert isinstance(
-            fc_dims, (list, tuple)
-        ), "fc_dims must be either list or tuple, but got {}".format(type(fc_dims))
+        if not isinstance(fc_dims, (list, tuple)):
+            raise AssertionError(
+                f"fc_dims must be either list or tuple, but got {type(fc_dims)}"
+            )
 
         layers = []
         for dim in fc_dims:
@@ -363,7 +364,7 @@ class ResNet(nn.Module):
         elif self.loss == "triplet":
             return y, v
         else:
-            raise KeyError("Unsupported loss: {}".format(self.loss))
+            raise KeyError(f"Unsupported loss: {self.loss}")
 
 
 def init_pretrained_weights(model, model_url):
@@ -382,7 +383,9 @@ def init_pretrained_weights(model, model_url):
     model.load_state_dict(model_dict)
 
 
-"""ResNet"""
+################
+#### ResNet ####
+################
 
 
 def resnet18(num_classes, loss="softmax", pretrained=True, **kwargs):
@@ -394,7 +397,7 @@ def resnet18(num_classes, loss="softmax", pretrained=True, **kwargs):
         last_stride=2,
         fc_dims=None,
         dropout_p=None,
-        **kwargs
+        **kwargs,
     )
     if pretrained:
         init_pretrained_weights(model, model_urls["resnet18"])
@@ -410,7 +413,7 @@ def resnet34(num_classes, loss="softmax", pretrained=True, **kwargs):
         last_stride=2,
         fc_dims=None,
         dropout_p=None,
-        **kwargs
+        **kwargs,
     )
     if pretrained:
         init_pretrained_weights(model, model_urls["resnet34"])
@@ -426,16 +429,16 @@ def resnet50(num_classes, loss="softmax", pretrained=True, **kwargs):
         last_stride=2,
         fc_dims=None,
         dropout_p=None,
-        **kwargs
+        **kwargs,
     )
     if pretrained:
         init_pretrained_weights(model, model_urls["resnet50"])
     return model
 
 
-"""
-ResNet + FC
-"""
+######################
+#### ResNet + FC  ####
+######################
 
 
 def resnet50_fc512(num_classes, loss="softmax", pretrained=True, **kwargs):
@@ -447,7 +450,7 @@ def resnet50_fc512(num_classes, loss="softmax", pretrained=True, **kwargs):
         last_stride=1,
         fc_dims=[512],
         dropout_p=None,
-        **kwargs
+        **kwargs,
     )
     if pretrained:
         init_pretrained_weights(model, model_urls["resnet50"])

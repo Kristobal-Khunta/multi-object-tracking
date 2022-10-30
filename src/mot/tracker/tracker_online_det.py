@@ -9,12 +9,21 @@ from scipy.optimize import linear_sum_assignment as linear_assignment
 
 # tracker
 class IoUTracker(Tracker):
+    def __init__(self, obj_detect, *args, **kwargs):
+        self.obj_detect = obj_detect
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        super().__init__(*args, **kwargs)
+
     def data_association(self, boxes, scores):
         # self.im_index - index of current proceeded image
         # num existing tracks = self.tracks = 0 at first step
         # new bboxes form new frame = boxes
         if self.tracks:
-            track_ids = [t.id for t in self.tracks]
+            # track_ids = [t.id for t in self.tracks] # not needed in this tracker
             track_boxes = np.stack([t.box.numpy() for t in self.tracks], axis=0)
 
             iou_track_boxes = ltrb_to_ltwh(track_boxes)
@@ -51,13 +60,19 @@ class IoUTracker(Tracker):
 
 
 class HungarianIoUTracker(Tracker):
-    def __init__(self, unmatched_cost=255.0, *args, **kwargs):
-        self._UNMATCHED_COST = unmatched_cost
+    def __init__(self, obj_detect, *args, **kwargs):
+        self.obj_detect = obj_detect
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores):
         if self.tracks:
-            track_ids = [t.id for t in self.tracks]
+            # track_ids = [t.id for t in self.tracks]  # not needed in this tracker
             track_boxes = np.stack([t.box.numpy() for t in self.tracks], axis=0)
 
             # Build cost matrix.
@@ -80,7 +95,7 @@ class HungarianIoUTracker(Tracker):
             bad_idx = np.argwhere(~condition)
             good_idx = np.argwhere(condition)
 
-            internal_idx_bad_track = row_idx[bad_idx].ravel()
+            # internal_idx_bad_track = row_idx[bad_idx].ravel() # not needed in this tracker
             internal_idx_bad_bbox = col_idx[bad_idx].ravel()
 
             internal_idx_good_tracks = row_idx[good_idx].ravel()
@@ -175,9 +190,15 @@ class HungarianIoUTracker(Tracker):
 
 
 class ReIDHungarianIoUTracker(BaseReIDTracker):
-    def __init__(self, reid_model, unmatched_cost=255.0, *args, **kwargs):
-        self._UNMATCHED_COST = unmatched_cost
+    def __init__(self, obj_detect, reid_model, *args, **kwargs):
+        self.obj_detect = obj_detect
         self.reid_model = reid_model
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        self._UNMATCHED_COST = 255.0
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, frame):
@@ -185,7 +206,7 @@ class ReIDHungarianIoUTracker(BaseReIDTracker):
         pred_features = self.compute_reid_features(self.reid_model, crops).cpu().clone()
 
         if self.tracks:
-            track_ids = [t.id for t in self.tracks]
+            # track_ids = [t.id for t in self.tracks] # not needed
             track_boxes = torch.stack([t.box for t in self.tracks], axis=0)
             track_features = torch.stack([t.get_feature() for t in self.tracks], axis=0)
 
@@ -245,9 +266,20 @@ class ReIDHungarianIoUTracker(BaseReIDTracker):
 
 
 class MPNTracker(ReIDHungarianIoUTracker):
-    def __init__(self, refine_gnn_net, device="cuda", *args, **kwargs):
+    def __init__(
+        self, obj_detect, reid_model, refine_gnn_net, *args, device="cuda", **kwargs
+    ):
+        self.obj_detect = obj_detect
+        self.reid_model = reid_model
         self.refine_gnn_net = refine_gnn_net
         self.device = device
+        self._UNMATCHED_COST = 255.0
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, frame):  # pred_features

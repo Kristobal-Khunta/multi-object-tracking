@@ -11,7 +11,7 @@ from torchvision.transforms import ToTensor
 _sets = {}
 
 # Fill all available datasets, change here to modify / add new datasets.
-for split in [
+for split_val in [
     "train",
     "test",
     "all",
@@ -35,8 +35,8 @@ for split in [
     "val",
     "val2",
 ]:
-    name = f"MOT16-{split}"
-    _sets[name] = lambda root_dir, split=split, **kwargs: MOT16(
+    name = f"MOT16-{split_val}"
+    _sets[name] = lambda root_dir, split=split_val, **kwargs: MOT16(
         root_dir, split, **kwargs
     )
 
@@ -61,7 +61,8 @@ class MOT16Sequences:
         dataset --  the name of the dataset
         args -- arguments used to call the dataset
         """
-        assert dataset in _sets, "[!] Dataset not found: {}".format(dataset)
+        if dataset not in _sets:
+            raise AssertionError(f"[!] Dataset not found: {dataset}")
 
         self._data = _sets[dataset](root_dir, **kwargs)
 
@@ -84,8 +85,7 @@ class MOT16(Dataset):
         args -- arguments used to call the dataset
         """
         train_sequences = list(listdir_nohidden(os.path.join(root_dir, "train")))
-        # test_sequences = list(listdir_nohidden(os.path.join(root_dir, 'test')))
-        # test_sequences = ['MOT16-01', 'MOT16-03', 'MOT16-08', 'MOT16-12']
+
         test_sequences = ["MOT16-01", "MOT16-08", "MOT16-12"]
         val_sequences = ["MOT16-02", "MOT16-05", "MOT16-09", "MOT16-11"]
         val_sequences2 = ["MOT16-02", "MOT16-11"]
@@ -150,9 +150,8 @@ class MOT16Sequence(Dataset):
 
         self.transforms = ToTensor()
 
-        assert (
-            seq_name in self._train_folders or seq_name in self._test_folders
-        ), "Image set does not exist: {}".format(seq_name)
+        if not (seq_name in self._train_folders or seq_name in self._test_folders):
+            raise AssertionError(f"Image set does not exist: {seq_name}")
 
         self.data, self.no_gt = self._sequence()
 
@@ -167,11 +166,12 @@ class MOT16Sequence(Dataset):
 
         img = self.transforms(img)
 
-        sample = {}
-        sample["img"] = img
-        sample["img_path"] = data["im_path"]
-        sample["gt"] = data["gt"]
-        sample["vis"] = data["vis"]
+        sample = {
+            "img": img,
+            "img_path": data["im_path"],
+            "gt": data["gt"],
+            "vis": data["vis"],
+        }
 
         # segmentation
         if data["seg_img"] is not None:
@@ -194,9 +194,8 @@ class MOT16Sequence(Dataset):
 
         config_file = osp.join(seq_path, "seqinfo.ini")
 
-        assert osp.exists(config_file), "Config file does not exist: {}".format(
-            config_file
-        )
+        if not osp.exists(config_file):
+            raise AssertionError(f"Config file does not exist: {config_file}")
 
         config = configparser.ConfigParser()
         config.read(config_file)
@@ -240,6 +239,7 @@ class MOT16Sequence(Dataset):
             no_gt = True
 
         if self._load_seg:
+            # check folder exist
             if osp.exists(seg_dir):
                 for seg_file in listdir_nohidden(seg_dir):
                     frame_id = int(seg_file.split(".")[0])
@@ -249,9 +249,13 @@ class MOT16Sequence(Dataset):
         for i in range(1, seqLength + 1):
             img_path = osp.join(img_dir, f"{i:06d}.jpg")
 
-            datum = {"gt": boxes[i], "im_path": img_path, "vis": visibility[i]}
+            datum = {
+                "gt": boxes[i],
+                "im_path": img_path,
+                "vis": visibility[i],
+                "seg_img": None,
+            }
 
-            datum["seg_img"] = None
             if seg_imgs:
                 datum["seg_img"] = seg_imgs[i]
 
@@ -287,14 +291,12 @@ class MOT16Sequence(Dataset):
         ./MOT16-14.txt
         """
 
-        # format_str = "{}, -1, {}, {}, {}, {}, {}, -1, -1, -1"
-
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
         file = osp.join(output_dir, "MOT16-" + self._seq_name[6:8] + ".txt")
 
-        print("Writing predictions to: {}".format(file))
+        print(f"Writing predictions to {file}")
 
         with open(file, "w") as of:
             writer = csv.writer(of, delimiter=",")

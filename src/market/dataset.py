@@ -16,21 +16,19 @@ def read_image(path):
     """
     got_img = False
     if not osp.exists(path):
-        raise IOError('"{}" does not exist'.format(path))
+        raise IOError(f"{path} does not exist")
     while not got_img:
         try:
             img = Image.open(path).convert("RGB")
             got_img = True
         except IOError:
             print(
-                'IOError incurred when reading "{}". Will redo. Don\'t worry. Just chill.'.format(
-                    path
-                )
+                f'IOError incurred when reading "{path}". Will redo. Don\'t worry. Just chill.'
             )
     return img
 
 
-class Dataset(object):
+class Dataset:
     """An abstract class representing a Dataset.
     This is the base class for ``ImageDataset`` and ``VideoDataset``.
     Args:
@@ -68,7 +66,7 @@ class Dataset(object):
         mode="train",
         combineall=False,
         verbose=True,
-        **kwargs
+        **kwargs,
     ):
         # extend 3-tuple (img_path(s), pid, camid) to
         # 4-tuple (img_path(s), pid, camid, dsetid) by
@@ -104,8 +102,8 @@ class Dataset(object):
             self.data = self.gallery
         else:
             raise ValueError(
-                "Invalid mode. Got {}, but expected to be "
-                "one of [train | query | gallery]".format(self.mode)
+                f"Invalid mode. Got {self.mode}, but expected to be "
+                "one of [train | query | gallery]"
             )
 
         if self.verbose:
@@ -117,6 +115,7 @@ class Dataset(object):
     def __len__(self):
         return len(self.data)
 
+    # skipcq
     # def __add__(self, other):
     #     """Adds two datasets together (only the train set)."""
     #     train = copy.deepcopy(self.train)
@@ -152,7 +151,8 @@ class Dataset(object):
     #     else:
     #         return self.__add__(other)
 
-    def get_num_pids(self, data):
+    @staticmethod
+    def get_num_pids(data):
         """Returns the number of training person identities.
         Each tuple in data contains (img_path(s), pid, camid, dsetid).
         """
@@ -162,7 +162,8 @@ class Dataset(object):
             pids.add(pid)
         return len(pids)
 
-    def get_num_cams(self, data):
+    @staticmethod
+    def get_num_cams(data):
         """Returns the number of training cameras.
         Each tuple in data contains (img_path(s), pid, camid, dsetid).
         """
@@ -172,7 +173,8 @@ class Dataset(object):
             cams.add(camid)
         return len(cams)
 
-    def get_num_datasets(self, data):
+    @staticmethod
+    def get_num_datasets(data):
         """Returns the number of datasets included.
         Each tuple in data contains (img_path(s), pid, camid, dsetid).
         """
@@ -184,7 +186,7 @@ class Dataset(object):
 
     def show_summary(self):
         """Shows dataset statistics."""
-        pass
+        raise NotImplementedError(f"Not implemented in {self}")
 
     def combine_all(self):
         """Combines train, query and gallery in a dataset for training."""
@@ -225,7 +227,7 @@ class Dataset(object):
 
         for fpath in required_files:
             if not osp.exists(fpath):
-                raise RuntimeError('"{}" is not found'.format(fpath))
+                raise RuntimeError(f"{fpath} is not found")
 
     def __repr__(self):
         num_train_pids = self.get_num_pids(self.train)
@@ -236,9 +238,8 @@ class Dataset(object):
 
         num_gallery_pids = self.get_num_pids(self.gallery)
         num_gallery_cams = self.get_num_cams(self.gallery)
-
         msg = (
-            "  ----------------------------------------\n"
+            "  ----------------------------------------\n"  # skipcq: PYL-C0209
             "  subset   | # ids | # items | # cameras\n"
             "  ----------------------------------------\n"
             "  train    | {:5d} | {:7d} | {:9d}\n"
@@ -266,7 +267,7 @@ class Dataset(object):
         """
         img_list = []
 
-        for k in range(k_tfm):
+        for _ in range(k_tfm):
             img_list.append(tfm(img0))
 
         img = img_list
@@ -312,22 +313,22 @@ class ImageDataset(Dataset):
         num_gallery_pids = self.get_num_pids(self.gallery)
         num_gallery_cams = self.get_num_cams(self.gallery)
 
-        print("=> Loaded {}".format(self.__class__.__name__))
+        print(f"=> Loaded {self.__class__.__name__}")
         print("  ----------------------------------------")
         print("  subset   | # ids | # images | # cameras")
         print("  ----------------------------------------")
         print(
-            "  train    | {:5d} | {:8d} | {:9d}".format(
+            "  train    | {:5d} | {:8d} | {:9d}".format(  # skipcq: PYL-C0209
                 num_train_pids, len(self.train), num_train_cams
             )
         )
         print(
-            "  query    | {:5d} | {:8d} | {:9d}".format(
+            "  query    | {:5d} | {:8d} | {:9d}".format(  # skipcq: PYL-C0209
                 num_query_pids, len(self.query), num_query_cams
             )
         )
         print(
-            "  gallery  | {:5d} | {:8d} | {:9d}".format(
+            "  gallery  | {:5d} | {:8d} | {:9d}".format(  # skipcq: PYL-C0209
                 num_gallery_pids, len(self.gallery), num_gallery_cams
             )
         )
@@ -396,8 +397,10 @@ class Market1501(ImageDataset):
             pid, camid = map(int, pattern.search(img_path).groups())
             if pid == -1:
                 continue  # junk images are just ignored
-            assert 0 <= pid <= 1501  # pid == 0 means background
-            assert 1 <= camid <= 6
+            if not 0 <= pid <= 1501:
+                raise AssertionError
+            if not 1 <= camid <= 6:
+                raise AssertionError
             camid -= 1  # index starts from 0
             if relabel:
                 pid = pid2label[pid]

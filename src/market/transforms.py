@@ -14,7 +14,7 @@ from torchvision.transforms import (
 )
 
 
-class Random2DTranslation(object):
+class Random2DTranslation:
     """Randomly translates the input image with a probability.
     Specifically, given a predefined shape (height, width), the input is first
     resized with a factor of 1.125, leading to (height*1.125, width*1.125), then
@@ -50,7 +50,7 @@ class Random2DTranslation(object):
         return croped_img
 
 
-class RandomErasing(object):
+class RandomErasing:
     """Randomly erases an image patch.
     Origin: `<https://github.com/zhunzhong07/Random-Erasing>`_
     Reference:
@@ -65,7 +65,7 @@ class RandomErasing(object):
     """
 
     def __init__(
-        self, probability=0.5, sl=0.02, sh=0.4, r1=0.3, mean=[0.4914, 0.4822, 0.4465]
+        self, probability=0.5, sl=0.02, sh=0.4, r1=0.3, mean=(0.4914, 0.4822, 0.4465)
     ):
         self.probability = probability
         self.mean = mean
@@ -77,7 +77,7 @@ class RandomErasing(object):
         if random.uniform(0, 1) > self.probability:
             return img
 
-        for attempt in range(100):
+        for attempt in range(100):  # skipcq: PYL-W0612
             area = img.size()[1] * img.size()[2]
 
             target_area = random.uniform(self.sl, self.sh) * area
@@ -100,7 +100,7 @@ class RandomErasing(object):
         return img
 
 
-class ColorAugmentation(object):
+class ColorAugmentation:
     """Randomly alters the intensities of RGB channels.
     Reference:
         Krizhevsky et al. ImageNet Classification with Deep ConvolutionalNeural
@@ -121,8 +121,9 @@ class ColorAugmentation(object):
         )
         self.eig_val = torch.Tensor([[0.2175, 0.0188, 0.0045]])
 
-    def _check_input(self, tensor):
-        assert tensor.dim() == 3 and tensor.size(0) == 3
+    def _check_input(self, tensor):  # skipcq: PYL-R0201
+        if not (tensor.dim() == 3 and tensor.size(0) == 3):
+            raise AssertionError
 
     def __call__(self, tensor):
         if random.uniform(0, 1) > self.p:
@@ -133,7 +134,7 @@ class ColorAugmentation(object):
         return tensor
 
 
-class RandomPatch(object):
+class RandomPatch:
     """Random patch data augmentation.
     There is a patch pool that stores randomly extracted pathces from person images.
 
@@ -172,7 +173,7 @@ class RandomPatch(object):
 
     def generate_wh(self, W, H):
         area = W * H
-        for attempt in range(100):
+        for attempt in range(100):  # skipcq: PYL-W0612
             target_area = (
                 random.uniform(self.patch_min_area, self.patch_max_area) * area
             )
@@ -224,9 +225,9 @@ def build_transforms(
     height,
     width,
     transforms="random_flip",
-    norm_mean=[0.485, 0.456, 0.406],
-    norm_std=[0.229, 0.224, 0.225],
-    **kwargs
+    norm_mean=(0.485, 0.456, 0.406),
+    norm_std=(0.229, 0.224, 0.225),
+    **kwargs,
 ):
     """Builds train and test transform functions.
     Args:
@@ -246,9 +247,7 @@ def build_transforms(
 
     if not isinstance(transforms, list):
         raise ValueError(
-            "transforms must be a list of strings, but found to be {}".format(
-                type(transforms)
-            )
+            f"transforms must be a list of strings, but found to be {type(transforms)}"
         )
 
     if len(transforms) > 0:
@@ -262,7 +261,7 @@ def build_transforms(
     print("Building train transforms ...")
     transform_tr = []
 
-    print("+ resize to {}x{}".format(height, width))
+    print(f"+ resize to {height}x{width}")
     transform_tr += [Resize((height, width))]
 
     if "random_flip" in transforms:
@@ -271,10 +270,9 @@ def build_transforms(
 
     if "random_crop" in transforms:
         print(
-            "+ random crop (enlarge to {}x{} and "
-            "crop {}x{})".format(
-                int(round(height * 1.125)), int(round(width * 1.125)), height, width
-            )
+            f"+ random crop (enlarge to {int(round(height * 1.125))}"
+            + f"x{ int(round(width * 1.125))}"
+            + f"and crop {height}x{width}"
         )
         transform_tr += [Random2DTranslation(height, width)]
 
@@ -291,7 +289,7 @@ def build_transforms(
     print("+ to torch tensor of range [0, 1]")
     transform_tr += [ToTensor()]
 
-    print("+ normalization (mean={}, std={})".format(norm_mean, norm_std))
+    print(f"+ normalization (mean={norm_mean}, std={norm_std})")
     transform_tr += [normalize]
 
     if "random_erase" in transforms:
@@ -301,9 +299,9 @@ def build_transforms(
     transform_tr = Compose(transform_tr)
 
     print("Building test transforms ...")
-    print("+ resize to {}x{}".format(height, width))
+    print(f"+ resize to {height}x{width}")
     print("+ to torch tensor of range [0, 1]")
-    print("+ normalization (mean={}, std={})".format(norm_mean, norm_std))
+    print(f"+ normalization (mean={norm_mean}, std={norm_std})")
 
     transform_te = Compose(
         [

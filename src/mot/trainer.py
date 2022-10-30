@@ -28,11 +28,12 @@ def compute_class_metric(
     return class_metrics_dict
 
 
-def train_one_epoch(model, data_loader, optimizer, accum_batches=1, print_freq=200):
+def train_one_epoch(
+    model, data_loader, optimizer, _unused_accum_batches=1, print_freq=200
+):
     model.train()
-    device = next(model.parameters()).device
+    device = next(model.parameters()).device  # skipcq: PTC-W0063
     metrics_accum = {"loss": 0.0, "accuracy": 0.0, "recall": 0.0, "precision": 0.0}
-    # for i, batch in tqdm.tqdm(enumerate(data_loader)):
     for i, batch in tqdm.tqdm(enumerate(data_loader)):
         optimizer.zero_grad()
 
