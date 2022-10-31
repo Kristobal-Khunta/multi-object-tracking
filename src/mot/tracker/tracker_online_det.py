@@ -190,8 +190,8 @@ class HungarianIoUTracker(Tracker):
 
 
 class ReIDHungarianIoUTracker(BaseReIDTracker):
-    def __init__(self, obj_detect, reid_model, *args, **kwargs):
-        self.obj_detect = obj_detect
+    def __init__(self, obj_detect, reid_model, **kwargs):
+        super().__init__(obj_detect=obj_detect, **kwargs)
         self.reid_model = reid_model
         self.tracks = []
         self.track_num = 0
@@ -199,7 +199,6 @@ class ReIDHungarianIoUTracker(BaseReIDTracker):
         self.results = {}
         self.mot_accum = None
         self._UNMATCHED_COST = 255.0
-        super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, frame):
         crops = self.get_crop_from_boxes(boxes, frame)
@@ -265,6 +264,73 @@ class ReIDHungarianIoUTracker(BaseReIDTracker):
         self.add(new_boxes, new_scores, new_features)
 
 
+class LongTermReIDHungarianTracker(ReIDHungarianIoUTracker):
+    def __init__(self, obj_detect, reid_model, patience, **kwargs):
+        """Add a patience parameter"""
+        super().__init__(obj_detect=obj_detect, reid_model=reid_model, **kwargs)
+        self.patience = patience
+
+    def update_results(self):
+        """Only store boxes for tracks that are active"""
+        for t in self.tracks:
+            if t.id not in self.results.keys():
+                self.results[t.id] = {}
+            if t.inactive == 0:  # Only change
+                self.results[t.id][self.im_index] = np.concatenate(
+                    [t.box.cpu().numpy(), np.array([t.score])]
+                )
+
+        self.im_index += 1
+
+    def update_tracks(self, row_idx, col_idx, distance, boxes, scores, pred_features):
+        track_ids = [t.id for t in self.tracks]
+
+        unmatched_track_ids = []
+        seen_track_ids = []
+        seen_box_idx = []
+        for track_idx, box_idx in zip(row_idx, col_idx):
+            costs = distance[track_idx, box_idx]
+            internal_track_id = track_ids[track_idx]
+            seen_track_ids.append(internal_track_id)
+            if costs == _UNMATCHED_COST:
+                unmatched_track_ids.append(internal_track_id)
+
+            else:
+                self.tracks[track_idx].box = boxes[box_idx]
+                self.tracks[track_idx].add_feature(pred_features[box_idx])
+
+                # Note: the track is matched, therefore, inactive is set to 0
+                self.tracks[track_idx].inactive = 0
+                seen_box_idx.append(box_idx)
+
+        unseen_track_ids = set(track_ids) - set(seen_track_ids)
+        unmatched_track_ids.extend(list(unseen_track_ids))
+
+        # Update the `inactive` attribute for those tracks that have been
+        # not been matched. kill those for which the inactive parameter
+        # is > self.patience
+
+        active_tracks = []
+        for t in self.tracks:
+            if t.id not in unmatched_track_ids:
+                active_tracks.append(t)  # <-- Needs to be updated
+            elif t.inactive < self.patience:
+                active_tracks.append(t)
+                t.inactive += 1
+            else:  #
+                continue
+        self.tracks = active_tracks
+        ##################
+        ### TODO ends
+        ##################
+
+        new_boxes_idx = set(range(len(boxes))) - set(seen_box_idx)
+        new_boxes = [boxes[i] for i in new_boxes_idx]
+        new_scores = [scores[i] for i in new_boxes_idx]
+        new_features = [pred_features[i] for i in new_boxes_idx]
+        self.add(new_boxes, new_scores, new_features)
+
+
 class MPNTracker(ReIDHungarianIoUTracker):
     def __init__(
         self, obj_detect, reid_model, refine_gnn_net, *args, device="cuda", **kwargs
@@ -279,7 +345,6 @@ class MPNTracker(ReIDHungarianIoUTracker):
         self.im_index = 0
         self.results = {}
         self.mot_accum = None
-
         super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, frame):  # pred_features
