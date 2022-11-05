@@ -10,6 +10,68 @@ import market.metrics as metrics
 mm.lap.default_solver = "lap"
 
 
+class MixinPredefinedDetections:
+    def step(self, frame):
+        """This function should be called every timestep to perform tracking with a blob
+        containing the image information.
+        """
+
+        # if predefined detections
+        boxes = frame["det"]["boxes"]
+        scores = frame["det"]["scores"]
+        self.data_association(boxes, scores)
+        self.update_results()
+
+
+class MixinReIDOffline:
+    def step(self, frame):
+        """This function should be called every timestep to perform tracking with a blob
+        containing the image information.
+        """
+        boxes = frame["det"]["boxes"]
+        scores = frame["det"]["scores"]
+        reid_feats = frame["det"]["reid"].cpu()
+        self.data_association(boxes, scores, reid_feats)
+        self.update_results()
+
+    @staticmethod
+    def compute_distance_matrix(
+        track_features,
+        pred_features,
+        track_boxes,
+        boxes,
+        metric_fn,
+        alpha=0.0,
+        UNMATCHED_COST=255.0,
+    ):
+
+        # Build cost matrix.
+        distance = mm.distances.iou_matrix(
+            ltrb_to_ltwh(track_boxes).numpy(), ltrb_to_ltwh(boxes).numpy(), max_iou=0.5
+        )
+
+        appearance_distance = metrics.compute_distance_matrix(
+            track_features, pred_features, metric_fn=metric_fn
+        )
+        appearance_distance = appearance_distance.numpy() * 0.5
+        # return appearance_distance
+
+        if not np.alltrue(appearance_distance >= -0.1):
+            raise AssertionError
+        if not np.alltrue(appearance_distance <= 1.1):
+            raise AssertionError
+
+        combined_costs = alpha * distance + (1 - alpha) * appearance_distance
+
+        # Set all unmatched costs to _UNMATCHED_COST.
+        distance = np.where(np.isnan(distance), UNMATCHED_COST, combined_costs)
+
+        distance = np.where(appearance_distance > 0.1, UNMATCHED_COST, distance)
+
+        return distance
+
+
+
 class TrackerOfflineDet(BaseTracker):
     def __init__(self):
         self.tracks = []

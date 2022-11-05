@@ -102,14 +102,13 @@ class BaseTracker(abc.ABC):
 class Tracker(BaseTracker):
     """The main tracking file, here is where magic happens."""
 
-    def __init__(self, obj_detect, *args, **kwargs):
+    def __init__(self, obj_detect):
         self.obj_detect = obj_detect
         self.tracks = []
         self.track_num = 0
         self.im_index = 0
         self.results = {}
         self.mot_accum = None
-        super().__init__(*args, **kwargs)
 
     def add(self, new_boxes, new_scores, new_features=None):
         """Initializes new Track objects and saves them."""
@@ -137,15 +136,15 @@ class Tracker(BaseTracker):
 
 ############
 class BaseReIDTracker(BaseTracker):
-    def __init__(self, obj_detect, *args, **kwargs):
+    def __init__(self, obj_detect , reid_model):
         self.obj_detect = obj_detect
+        self.reid_model = reid_model
         self.tracks = []
         self.track_num = 0
         self.im_index = 0
         self.results = {}
         self.mot_accum = None
         self._UNMATCHED_COST = 255.0
-        super().__init__(*args, **kwargs)
 
     def data_association(self, boxes, scores, frame):
         raise NotImplementedError
