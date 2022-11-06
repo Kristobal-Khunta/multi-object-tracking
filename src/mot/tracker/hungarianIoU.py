@@ -47,20 +47,6 @@ class IoUTracker(Tracker):
         self.results = {}
         self.mot_accum = None
 
-    def step(self, frame):
-        """This function should be called every timestep to perform tracking with a blob
-        containing the image information.
-        """
-
-        if self.obj_detect:
-            boxes, scores = self.obj_detect.detect(frame["img"])
-        else:
-            boxes = frame["det"]["boxes"]
-            scores = frame["det"]["scores"]
-
-        self.data_association(boxes, scores)
-        self.update_results()
-
     def data_association(self, boxes, scores):
         # self.im_index - index of current proceeded image
         # num existing tracks = self.tracks = 0 at first step
@@ -106,7 +92,7 @@ class IoUTracker(Tracker):
         self.add(new_boxes, new_scores)
 
 
-class HungarianIoUTracker(Tracker):
+class HungarianIoUTracker(IoUTracker):
     def __init__(self, obj_detect):
         self.obj_detect = obj_detect
         self.tracks = []

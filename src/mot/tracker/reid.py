@@ -29,16 +29,13 @@ class ReIDHungarianIoUTracker(Tracker):
         containing the image information.
         """
 
-        if self.obj_detect:
+        if self.obj_detect and self.reid_model:
             boxes, scores = self.obj_detect.detect(frame["img"])
-        else:
-            boxes = frame["det"]["boxes"]
-            scores = frame["det"]["scores"]
-
-        if self.reid_model:
             crops = get_crop_from_boxes(boxes, frame)
             reid_features = compute_reid_features(self.reid_model, crops).cpu().clone()
         else:
+            boxes = frame["det"]["boxes"]
+            scores = frame["det"]["scores"]
             reid_features = frame["det"]["reid"].cpu()
 
         self.data_association(boxes, scores, reid_features)
@@ -121,26 +118,6 @@ class LongTermReIDHungarianTracker(ReIDHungarianIoUTracker):
         self.mot_accum = None
         self._UNMATCHED_COST = 255.0
 
-    def step(self, frame):
-        """This function should be called every timestep to perform tracking with a blob
-        containing the image information.
-        """
-
-        if self.obj_detect:
-            boxes, scores = self.obj_detect.detect(frame["img"])
-        else:
-            boxes = frame["det"]["boxes"]
-            scores = frame["det"]["scores"]
-
-        if self.reid_model:
-            crops = get_crop_from_boxes(boxes, frame)
-            reid_features = compute_reid_features(self.reid_model, crops).cpu().clone()
-        else:
-            reid_features = frame["det"]["reid"].cpu()
-
-        self.data_association(boxes, scores, reid_features)
-        self.update_results()
-
     def update_results(self):
         """Only store boxes for tracks that are active"""
         for t in self.tracks:
@@ -214,26 +191,6 @@ class MPNTracker(LongTermReIDHungarianTracker):
         self.im_index = 0
         self.results = {}
         self.mot_accum = None
-
-    def step(self, frame):
-        """This function should be called every timestep to perform tracking with a blob
-        containing the image information.
-        """
-
-        if self.obj_detect:
-            boxes, scores = self.obj_detect.detect(frame["img"])
-        else:
-            boxes = frame["det"]["boxes"]
-            scores = frame["det"]["scores"]
-
-        if self.reid_model:
-            crops = get_crop_from_boxes(boxes, frame)
-            reid_features = compute_reid_features(self.reid_model, crops).cpu().clone()
-        else:
-            reid_features = frame["det"]["reid"].cpu()
-
-        self.data_association(boxes, scores, reid_features)
-        self.update_results()
 
     def data_association(self, boxes, scores, pred_features):  # pred_features
 
