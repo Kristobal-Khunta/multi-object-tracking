@@ -66,7 +66,7 @@ class IoUTracker(Tracker):
         # num existing tracks = self.tracks = 0 at first step
         # new bboxes form new frame = boxes
         if self.tracks:
-            # track_ids = [t.id for t in self.tracks] # not needed in this tracker
+            # track_ids = [t.id for t in self.tracks] not needed in this tracker
             track_boxes = np.stack([t.box.numpy() for t in self.tracks], axis=0)
 
             iou_track_boxes = ltrb_to_ltwh(track_boxes)
@@ -104,7 +104,7 @@ class IoUTracker(Tracker):
 
 class HungarianIoUTracker(IoUTracker):
     def __init__(self, obj_detect):
-        self.obj_detect = obj_detect
+        super().__init__(obj_detect=obj_detect)
         self.tracks = []
         self.track_num = 0
         self.im_index = 0
