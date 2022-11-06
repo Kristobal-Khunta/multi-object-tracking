@@ -47,61 +47,6 @@ class IoUTracker(Tracker):
         self.results = {}
         self.mot_accum = None
 
-    def data_association(self, boxes, scores):
-        # self.im_index - index of current proceeded image
-        # num existing tracks = self.tracks = 0 at first step
-        # new bboxes form new frame = boxes
-        if self.tracks:
-            # track_ids = [t.id for t in self.tracks] # not needed in this tracker
-            track_boxes = np.stack([t.box.numpy() for t in self.tracks], axis=0)
-
-            iou_track_boxes = ltrb_to_ltwh(track_boxes)
-            iou_boxes = ltrb_to_ltwh(boxes)
-            distance = mm.distances.iou_matrix(
-                iou_track_boxes, iou_boxes.numpy(), max_iou=0.5
-            )
-
-            self.update_tracks(None, None, distance, boxes, scores)
-
-        else:
-            # as self.tracks is empty add all bboxes as start of new tracks"
-            self.add(boxes, scores)
-            # after add all bboxes self.track is not empty "
-
-    def update_tracks(self, row_idx, col_idx, distance, boxes, scores):
-        # distance.shape = [num existing tracks,num new bboxes]
-        # update existing tracks
-        remove_track_ids = []
-        for t, dist in zip(self.tracks, distance):
-            # If there are no matching boxes for this track = all nans in row
-            # we remove the track from tracking
-            if np.isnan(dist).all():
-                remove_track_ids.append(t.id)
-            else:
-                box_id = np.nanargmin(dist)
-                t.box = boxes[box_id]
-        self.tracks = [t for t in self.tracks if t.id not in remove_track_ids]
-
-        # add new tracks
-        new_boxes = []
-        new_scores = []
-        for i, dist in enumerate(np.transpose(distance)):
-            if np.isnan(dist).all():
-                new_boxes.append(boxes[i])
-                new_scores.append(scores[i])
-        self.add(new_boxes, new_scores)
-
-
-class HungarianIoUTracker(IoUTracker):
-    def __init__(self, obj_detect):
-        self.obj_detect = obj_detect
-        self.tracks = []
-        self.track_num = 0
-        self.im_index = 0
-        self.results = {}
-        self.mot_accum = None
-        self._UNMATCHED_COST = 255.0
-
     def step(self, frame):
         """This function should be called every timestep to perform tracking with a blob
         containing the image information.
@@ -117,8 +62,59 @@ class HungarianIoUTracker(IoUTracker):
         self.update_results()
 
     def data_association(self, boxes, scores):
+        # self.im_index - index of current proceeded image
+        # num existing tracks = self.tracks = 0 at first step
+        # new bboxes form new frame = boxes
         if self.tracks:
-            # track_ids = [t.id for t in self.tracks]  # not needed in this tracker
+            # track_ids = [t.id for t in self.tracks] # not needed in this tracker
+            track_boxes = np.stack([t.box.numpy() for t in self.tracks], axis=0)
+
+            iou_track_boxes = ltrb_to_ltwh(track_boxes)
+            iou_boxes = ltrb_to_ltwh(boxes)
+            distance = mm.distances.iou_matrix(
+                iou_track_boxes, iou_boxes.numpy(), max_iou=0.5
+            )
+            # distance.shape = [num existing tracks,num new bboxes]
+            # update existing tracks
+            remove_track_ids = []
+            for t, dist in zip(self.tracks, distance):
+                # If there are no matching boxes for this track = all nans in row
+                # we remove the track from tracking
+                if np.isnan(dist).all():
+                    remove_track_ids.append(t.id)
+                else:
+                    match_id = np.nanargmin(dist)
+                    t.box = boxes[match_id]
+            self.tracks = [t for t in self.tracks if t.id not in remove_track_ids]
+
+            # add new tracks
+            new_boxes = []
+            new_scores = []
+            for i, dist in enumerate(np.transpose(distance)):
+                if np.isnan(dist).all():
+                    new_boxes.append(boxes[i])
+                    new_scores.append(scores[i])
+            self.add(new_boxes, new_scores)
+
+        else:
+            # as self.tracks is empty add all bboxes as start of new tracks"
+            self.add(boxes, scores)
+            # after add all bboxes self.track is not empty "
+
+
+class HungarianIoUTracker(IoUTracker):
+    def __init__(self, obj_detect):
+        self.obj_detect = obj_detect
+        self.tracks = []
+        self.track_num = 0
+        self.im_index = 0
+        self.results = {}
+        self.mot_accum = None
+        self._UNMATCHED_COST = 255.0
+
+    def data_association(self, boxes, scores):
+        if self.tracks:
+            # track_ids = [t.id for t in self.tracks] not needed in this tracker
             track_boxes = np.stack([t.box.numpy() for t in self.tracks], axis=0)
 
             # Build cost matrix.
@@ -147,7 +143,7 @@ class HungarianIoUTracker(IoUTracker):
         bad_idx = np.argwhere(~condition)
         good_idx = np.argwhere(condition)
 
-        # internal_idx_bad_track = row_idx[bad_idx].ravel() # not needed in this tracker
+        # internal_idx_bad_track = row_idx[bad_idx].ravel()  not needed in this tracker
         internal_idx_bad_bbox = col_idx[bad_idx].ravel()
 
         internal_idx_good_tracks = row_idx[good_idx].ravel()

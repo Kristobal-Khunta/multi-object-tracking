@@ -47,7 +47,7 @@ class ReIDHungarianIoUTracker(Tracker):
         pred_features = self.compute_reid_features(self.reid_model, crops).cpu().clone()
 
         if self.tracks:
-            # track_ids = [t.id for t in self.tracks] # not needed
+            # not needed: track_ids = [t.id for t in self.tracks] 
             track_boxes = torch.stack([t.box for t in self.tracks], axis=0)
             track_features = torch.stack([t.get_feature() for t in self.tracks], axis=0)
 
@@ -121,7 +121,7 @@ class LongTermReIDHungarianTracker(ReIDHungarianIoUTracker):
     def update_results(self):
         """Only store boxes for tracks that are active"""
         for t in self.tracks:
-            if t.id not in self.results.keys():
+            if t.id not in self.results:
                 self.results[t.id] = {}
             if t.inactive == 0:  # Only change
                 self.results[t.id][self.im_index] = np.concatenate(

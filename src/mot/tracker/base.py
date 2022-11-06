@@ -99,15 +99,3 @@ class Tracker(abc.ABC):
         """
         raise NotImplementedError
 
-
-# class MixinPredefinedDetections:
-#     def step(self, frame):
-#         """This function should be called every timestep to perform tracking with a blob
-#         containing the image information.
-#         """
-
-#         # if predefined detections
-#         boxes = frame["det"]["boxes"]
-#         scores = frame["det"]["scores"]
-#         self.data_association(boxes, scores)
-#         self.update_results()
