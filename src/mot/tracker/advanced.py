@@ -7,15 +7,21 @@ from mot.utils import (
     cosine_distance,
     get_crop_from_boxes,
     compute_reid_features,
+    compute_iou_reid_distance_matrix,
 )
 from scipy.optimize import linear_sum_assignment as linear_assignment
 
 mm.lap.default_solver = "lap"
 
 
-class ReIDHungarianIoUTracker(Tracker):
-    def __init__(self, obj_detect, reid_model, **kwargs):
-        super().__init__(obj_detect=obj_detect, **kwargs)
+class ReIDHungarianTracker(Tracker):
+    """
+    Use IoU distance and appearance distance 
+    
+    """
+    def __init__(self, obj_detect, reid_model):
+        super().__init__()
+        self.obj_detect = obj_detect
         self.reid_model = reid_model
         self.tracks = []
         self.track_num = 0
@@ -41,18 +47,15 @@ class ReIDHungarianIoUTracker(Tracker):
         self.data_association(boxes, scores, reid_features)
         self.update_results()
 
-    def data_association(self, boxes, scores, frame):
-
-        crops = self.get_crop_from_boxes(boxes, frame)
-        pred_features = self.compute_reid_features(self.reid_model, crops).cpu().clone()
+    def data_association(self, boxes, scores, pred_features):
 
         if self.tracks:
-            # not needed: track_ids = [t.id for t in self.tracks] 
+            # not needed: track_ids = [t.id for t in self.tracks]
             track_boxes = torch.stack([t.box for t in self.tracks], axis=0)
             track_features = torch.stack([t.get_feature() for t in self.tracks], axis=0)
 
             # This will use your similarity measure. Please use cosine_distance!
-            distance = self.compute_distance_matrix(
+            distance = compute_iou_reid_distance_matrix(
                 track_features,
                 pred_features,
                 track_boxes,
@@ -106,7 +109,7 @@ class ReIDHungarianIoUTracker(Tracker):
         self.add(new_boxes, new_scores, new_features)
 
 
-class LongTermReIDHungarianTracker(ReIDHungarianIoUTracker):
+class LongTermReIDHungarianTracker(ReIDHungarianTracker):
     def __init__(self, obj_detect, reid_model, patience, **kwargs):
         """Add a patience parameter"""
         super().__init__(obj_detect=obj_detect, reid_model=reid_model, **kwargs)
@@ -178,12 +181,12 @@ class LongTermReIDHungarianTracker(ReIDHungarianIoUTracker):
 
 class MPNTracker(LongTermReIDHungarianTracker):
     def __init__(
-        self, obj_detect, reid_model, refine_gnn_net, patience, device="cuda", **kwargs
+        self, obj_detect, reid_model, similarity_net, patience, device="cuda", **kwargs
     ):
         super().__init__(
             obj_detect=obj_detect, reid_model=reid_model, patience=patience, **kwargs
         )
-        self.refine_gnn_net = refine_gnn_net
+        self.similarity_net = similarity_net
         self.device = device
         self._UNMATCHED_COST = 255.0
         self.tracks = []
@@ -211,7 +214,7 @@ class MPNTracker(LongTermReIDHungarianTracker):
             ).to(self.device)
 
             # Do a forward pass through self.assign_net to obtain our costs.
-            edges_raw_logits = self.refine_gnn_net(
+            edges_raw_logits = self.similarity_net(
                 track_features.to(self.device),
                 pred_features.to(self.device),
                 track_boxes.to(self.device),

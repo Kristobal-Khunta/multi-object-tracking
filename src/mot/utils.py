@@ -1,7 +1,10 @@
 import torch
 import copy
+import motmetrics as mm
+import numpy as np
 from torch.nn import functional as F
 import torchvision.transforms.functional as TF
+import market.metrics as metrics
 
 
 def euclidean_squared_distance(input1, input2):
@@ -45,6 +48,41 @@ def ltrb_to_xcycwh(ltrb_boxes):
     xcycwh[:, 2] = ltrb_boxes[:, 2] - ltrb_boxes[:, 0]
     xcycwh[:, 3] = ltrb_boxes[:, 3] - ltrb_boxes[:, 1]
     return xcycwh
+
+
+def compute_iou_reid_distance_matrix(
+    track_features,
+    pred_features,
+    track_boxes,
+    boxes,
+    metric_fn,
+    unmatched_cost=255.0,
+    alpha=0.0,
+):
+    # UNMATCHED_COST = 255.0
+
+    # Build cost matrix.
+    distance = mm.distances.iou_matrix(
+        ltrb_to_ltwh(track_boxes).numpy(), ltrb_to_ltwh(boxes).numpy(), max_iou=0.5
+    )
+
+    appearance_distance = metrics.compute_distance_matrix(
+        track_features, pred_features, metric_fn=metric_fn
+    )
+    appearance_distance = appearance_distance.numpy() * 0.5
+    # return appearance_distance
+
+    assert np.alltrue(appearance_distance >= -0.1)
+    assert np.alltrue(appearance_distance <= 1.1)
+
+    combined_costs = alpha * distance + (1 - alpha) * appearance_distance
+
+    # Set all unmatched costs to _UNMATCHED_COST.
+    distance = np.where(np.isnan(distance), unmatched_cost, combined_costs)
+
+    distance = np.where(appearance_distance > 0.1, unmatched_cost, distance)
+
+    return distance
 
 
 def get_crop_from_boxes(boxes, frame, height=256, width=128):
