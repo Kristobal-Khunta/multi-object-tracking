@@ -1,5 +1,6 @@
 import argparse
 import time
+from pathlib import Path
 
 import motmetrics as mm
 import numpy as np
@@ -57,7 +58,6 @@ def main():
     args = parser.parse_args()
 
     model_type = args.model_type
-    from pathlib import Path
 
     reid_root_dir = Path(__file__).parent.parent
     print("reid_root_dir", reid_root_dir)
