@@ -42,6 +42,7 @@ def setup_parser():
     parser.add_argument("--max_epoch", type=int, default=30)
     parser.add_argument("--eval_freq", type=int, default=1)
     parser.add_argument("--print_freq", type=int, default=50)
+    parser.add_argument("--device", type=str, default='cpu')
     parser.add_argument("--help", "-h", action="help")
     return parser
 
@@ -50,7 +51,8 @@ def main():
     set_all_seeds(12347)
     parser = setup_parser()
     args = parser.parse_args()
-
+    device = args.device 
+    print('parse args')
     root_dir = Path(__file__).parent.parent
     root_dir = str(root_dir)
 
@@ -61,7 +63,7 @@ def main():
     # MAX_EPOCHS = 15
     # EVAL_FREQ = 1
 
-    device = torch.device("cpu")
+    
 
     # Define our model, and init
     similarity_net = SimilarityNet(
@@ -71,8 +73,8 @@ def main():
         reid_dim=512,
         edges_in_dim=6,
         num_steps=10,
-    ).to(device)
-
+    )
+    similarity_net = similarity_net.to(device)
     # We only keep two sequences for validation. You can
     dataset = LongTrackTrainingDataset(
         dataset="MOT16-train_wo_val2",
@@ -100,12 +102,14 @@ def main():
         train_one_epoch(
             model=similarity_net,
             data_loader=data_loader,
+            device=device,
             optimizer=optimizer,
             print_freq=args.print_freq,
         )
         scheduler.step()
 
         if epoch % args.eval_freq == 0:
+            print('EVAL LOOP')
             tracker = MPNTracker(
                 obj_detect=None,
                 reid_model=None,

@@ -1,24 +1,25 @@
-import torch
 import motmetrics as mm
 import numpy as np
-
-from mot.tracker.base import Tracker
-from mot.utils import (
-    cosine_distance,
-    get_crop_from_boxes,
-    compute_reid_features,
-    compute_iou_reid_distance_matrix,
-)
+import torch
 from scipy.optimize import linear_sum_assignment as linear_assignment
+
+from mot.models.reid import (
+    compute_iou_reid_distance_matrix,
+    compute_reid_features,
+    get_crop_from_boxes,
+)
+from mot.tracker.base import Tracker
+from mot.utils import cosine_distance
 
 mm.lap.default_solver = "lap"
 
 
 class ReIDHungarianTracker(Tracker):
     """
-    Use IoU distance and appearance distance 
-    
+    Use IoU distance and appearance distance
+
     """
+
     def __init__(self, obj_detect, reid_model):
         super().__init__()
         self.obj_detect = obj_detect
@@ -180,14 +181,14 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
 
 
 class MPNTracker(LongTermReIDHungarianTracker):
-    def __init__(
-        self, obj_detect, reid_model, similarity_net, patience, device="cuda", **kwargs
-    ):
+    def __init__(self, obj_detect, reid_model, similarity_net, patience, **kwargs):
         super().__init__(
             obj_detect=obj_detect, reid_model=reid_model, patience=patience, **kwargs
         )
+        ## Tracker mainly work with cpu bboxes 
         self.similarity_net = similarity_net
-        self.device = device
+        self.device = list(similarity_net.parameters())[0].device
+        ## eval features with similarity net based on its device
         self._UNMATCHED_COST = 255.0
         self.tracks = []
         self.track_num = 0
@@ -196,35 +197,31 @@ class MPNTracker(LongTermReIDHungarianTracker):
         self.mot_accum = None
 
     def data_association(self, boxes, scores, pred_features):  # pred_features
-
         if self.tracks:
-            track_boxes = torch.stack([t.box for t in self.tracks], axis=0).to(
-                self.device
-            )
-            track_features = torch.stack(
-                [t.get_feature() for t in self.tracks], axis=0
-            ).to(self.device)
+            track_boxes = torch.stack([t.box for t in self.tracks], axis=0)
+            track_features = torch.stack([t.get_feature() for t in self.tracks], axis=0)
 
             # Hacky way to recover the timestamps of boxes and tracks
-            curr_t = self.im_index * torch.ones((pred_features.shape[0],)).to(
-                self.device
-            )
+            curr_t = self.im_index * torch.ones((pred_features.shape[0],))
             track_t = torch.as_tensor(
                 [self.im_index - t.inactive - 1 for t in self.tracks]
-            ).to(self.device)
+            )
 
             # Do a forward pass through self.assign_net to obtain our costs.
+            
+
             edges_raw_logits = self.similarity_net(
                 track_features.to(self.device),
                 pred_features.to(self.device),
                 track_boxes.to(self.device),
                 boxes.to(self.device),
-                track_t,
-                curr_t,
+                track_t.to(self.device),
+                curr_t.to(self.device),
             )
-            # Note: self.assign_net will return unnormalized probabilities.
+            edges_raw_logits = edges_raw_logits.detach().cpu()
+            # Note: self.similarity_net will return unnormalized probabilities.
             # apply the sigmoid function to them!
-            pred_sim = torch.sigmoid(edges_raw_logits).detach().cpu().numpy()
+            pred_sim = torch.sigmoid(edges_raw_logits).numpy()
             pred_sim = pred_sim[-1]  # Use predictions at last message passing step
             distance = 1 - pred_sim
             # print(pred_sim)
