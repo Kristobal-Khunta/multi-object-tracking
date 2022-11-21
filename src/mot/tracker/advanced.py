@@ -192,7 +192,7 @@ class MPNTracker(LongTermReIDHungarianTracker):
         self._UNMATCHED_COST = 255.0
         self.tracks = []
         self.track_num = 0
-        self.im_index = 0
+        self.im_index = 0 
         self.results = {}
         self.mot_accum = None
 

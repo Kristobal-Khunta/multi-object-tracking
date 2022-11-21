@@ -28,43 +28,25 @@ def set_all_seeds(seed):
 def setup_parser():
     """Set up Python's ArgumentParser with data, model, trainer, and other arguments."""
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument(
-        "--model_type", type=str, default="softmax", choices=["softmax", "triplet"]
-    )
-
-    parser.add_argument(
-        "--metric_fn",
-        type=str,
-        default="cosine",
-        choices=["cosine", "euclidian"],
-        help="metric_fn",
-    )
     parser.add_argument("--max_epoch", type=int, default=30)
     parser.add_argument("--eval_freq", type=int, default=1)
     parser.add_argument("--print_freq", type=int, default=50)
-    parser.add_argument("--device", type=str, default='cpu')
+    parser.add_argument("--max_patient", type=int, default=20)
+    parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--help", "-h", action="help")
     return parser
 
 
-def main():
+def main(args):
     set_all_seeds(12347)
-    parser = setup_parser()
-    args = parser.parse_args()
-    device = args.device 
-    print('parse args')
+    device = args.device
+    print("parse args")
     root_dir = Path(__file__).parent.parent
     root_dir = str(root_dir)
 
     train_db = torch.load(
         osp.join(root_dir, "data/preprocessed_data/preprocessed_data_train_2.pth")
     )
-    MAX_PATIENCE = 20
-    # MAX_EPOCHS = 15
-    # EVAL_FREQ = 1
-
-    
-
     # Define our model, and init
     similarity_net = SimilarityNet(
         reid_network=None,  # Not needed since we work with precomputed features
@@ -80,7 +62,7 @@ def main():
         dataset="MOT16-train_wo_val2",
         db=train_db,
         root_dir=osp.join(root_dir, "data/MOT16"),
-        max_past_frames=MAX_PATIENCE,
+        max_past_frames=args.max_patient,
         vis_threshold=0.25,
     )
 
@@ -109,12 +91,12 @@ def main():
         scheduler.step()
 
         if epoch % args.eval_freq == 0:
-            print('EVAL LOOP')
+            print("EVAL LOOP")
             tracker = MPNTracker(
                 obj_detect=None,
                 reid_model=None,
                 similarity_net=similarity_net.eval(),
-                patience=MAX_PATIENCE,
+                patience=args.max_patient,
             )
             val_sequences = MOT16Sequences(
                 "MOT16-val2", osp.join(root_dir, "data/MOT16"), vis_threshold=0.0
@@ -132,4 +114,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = setup_parser()
+    args = parser.parse_args()
+    main(args)
