@@ -108,7 +108,6 @@ class BipartiteNeuralMessagePassingLayer(nn.Module):
 class SimilarityNet(nn.Module):
     def __init__(
         self,
-        reid_network,
         node_dim,
         edge_dim,
         reid_dim,
@@ -117,7 +116,6 @@ class SimilarityNet(nn.Module):
         dropout=0.0,
     ):
         super().__init__()
-        self.reid_network = reid_network
         self.graph_net = BipartiteNeuralMessagePassingLayer(
             node_dim=node_dim, edge_dim=edge_dim, dropout=dropout
         )

@@ -100,7 +100,7 @@ def evaluate_obj_detect(model, data_loader):
     data_loader.dataset.print_eval(results)
 
 
-def run_tracker(val_sequences, db, tracker, output_dir=None):
+def run_tracker(val_sequences, tracker, database=None, output_dir=None):
     time_total = 0
     mot_accums = []
     results_seq = {}
@@ -110,8 +110,15 @@ def run_tracker(val_sequences, db, tracker, output_dir=None):
 
         print(f"Tracking: {seq}")
 
+        if database is None:
+            data_loader = DataLoader(seq, batch_size=1, shuffle=False)
+            frame_seq_iterator = tqdm(data_loader)
+
+        if database is not None:
+            frame_seq_iterator = database[str(seq)]
+
         with torch.no_grad():
-            for frame in db[str(seq)]:
+            for frame in frame_seq_iterator:
                 tracker.step(frame)
 
         results = tracker.get_results()
@@ -133,49 +140,9 @@ def run_tracker(val_sequences, db, tracker, output_dir=None):
 
     print(f"Runtime for all sequences: {time_total:.1f} s.")
     if mot_accums:
-        return evaluate_mot_accums(
+        result_mot = evaluate_mot_accums(
             mot_accums,
             [str(s) for s in val_sequences if not s.no_gt],
             generate_overall=True,
         )
-
-
-def run_tracker_raw_seq(sequences, tracker, output_dir=None):
-    time_total = 0
-    mot_accums = []
-    results_seq = {}
-    for seq in sequences:
-        tracker.reset()
-        now = time.time()
-
-        print(f"Tracking: {seq}")
-
-        data_loader = DataLoader(seq, batch_size=1, shuffle=False)
-        with torch.no_grad():
-            for frame in tqdm(data_loader):
-                tracker.step(frame)
-        results = tracker.get_results()
-        results_seq[str(seq)] = results
-
-        if seq.no_gt:
-            print("No GT evaluation data available.")
-        else:
-            mot_accums.append(get_mot_accum(results, seq))
-
-        time_total += time.time() - now
-
-        print(f"Tracks found: {len(results)}")
-        print(f"Runtime for {seq}: {time.time() - now:.1f} s.")
-
-        if output_dir is not None:
-            os.makedirs(output_dir, exist_ok=True)
-            seq.write_results(results, os.path.join(output_dir))
-
-    print(f"Runtime for all sequences: {time_total:.1f} s.")
-    if mot_accums:
-        evaluate_mot_accums(
-            mot_accums,
-            [str(s) for s in sequences if not s.no_gt],
-            generate_overall=True,
-        )
-    return results_seq
+    return result_mot, results_seq

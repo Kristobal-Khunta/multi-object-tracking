@@ -101,8 +101,8 @@ def main(args):
             val_sequences = MOT16Sequences(
                 "MOT16-val2", osp.join(root_dir, "data/MOT16"), vis_threshold=0.0
             )
-            res = run_tracker(
-                val_sequences, db=train_db, tracker=tracker, output_dir=None
+            res, _ = run_tracker(
+                val_sequences, tracker=tracker, db=train_db, output_dir=None
             )
             idf1 = res.loc["OVERALL"]["idf1"]
             if idf1 > best_idf1:
