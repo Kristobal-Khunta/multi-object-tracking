@@ -38,7 +38,7 @@ class ReIDHungarianTracker(Tracker):
 
         if self.obj_detect and self.reid_model:
             boxes, scores = self.obj_detect.detect(frame["img"])
-            crops = get_crop_from_boxes(boxes, frame)
+            crops = get_crop_from_boxes(boxes, frame["img"])
             reid_features = compute_reid_features(self.reid_model, crops).cpu().clone()
         else:
             boxes = frame["det"]["boxes"]
@@ -185,14 +185,14 @@ class MPNTracker(LongTermReIDHungarianTracker):
         super().__init__(
             obj_detect=obj_detect, reid_model=reid_model, patience=patience, **kwargs
         )
-        ## Tracker mainly work with cpu bboxes 
+        ## Tracker mainly work with cpu bboxes
         self.similarity_net = similarity_net
         self.device = list(similarity_net.parameters())[0].device
         ## eval features with similarity net based on its device
         self._UNMATCHED_COST = 255.0
         self.tracks = []
         self.track_num = 0
-        self.im_index = 0 
+        self.im_index = 0
         self.results = {}
         self.mot_accum = None
 
@@ -208,7 +208,6 @@ class MPNTracker(LongTermReIDHungarianTracker):
             )
 
             # Do a forward pass through self.assign_net to obtain our costs.
-            
 
             edges_raw_logits = self.similarity_net(
                 track_features.to(self.device),
