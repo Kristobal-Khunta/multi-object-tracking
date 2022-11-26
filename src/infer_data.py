@@ -20,9 +20,7 @@ from mot.models.reid import get_crop_from_boxes, compute_reid_features
 def setup_parser():
     """Set up Python's ArgumentParser with data, model, trainer, and other arguments."""
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--predefined_features", type=bool, default=False)
-    parser.add_argument("--seq_name", type=str, default="MOT16-val2")
-    parser.add_argument("--max_patient", type=int, default=20)
+
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--help", "-h", action="help")
     return parser
