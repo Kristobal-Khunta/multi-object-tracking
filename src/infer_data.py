@@ -2,19 +2,14 @@ import argparse
 import os
 from pathlib import Path
 
-import motmetrics as mm
-import numpy as np
 import torch
-
 from torch.utils.data import DataLoader
+from tqdm import tqdm
+
 from market.models import build_model
 from mot.data.data_track import MOT16Sequences
-from mot.eval import run_tracker
-from mot.models.gnn import SimilarityNet
 from mot.models.object_detector import FRCNN_FPN
-from mot.tracker.advanced import MPNTracker
-from tqdm import tqdm
-from mot.models.reid import get_crop_from_boxes, compute_reid_features
+from mot.models.reid import compute_reid_features, get_crop_from_boxes
 
 
 def setup_parser():
@@ -50,7 +45,7 @@ def main():
     device = args.device
     root_dir = Path(__file__).parent.parent
     root_dir = str(root_dir)
-    stored_data_filename = "preprocessed_data/preprocessed_data_tmp{}_.pth"
+    stored_data_filename = "preprocessed_data/preprocessed_data_{}.pth"
 
     #### model paths ####
     reid_model_file = os.path.join(root_dir, "models/resnet50_reid.pth")
@@ -126,7 +121,7 @@ def main():
 
                     db[str(seq)].append({"det": det, "gt": gt})
             assert len(db[str(seq)]) == len(data_loader)
-            break
+
         torch.save(
             db, os.path.join(root_dir, "data", stored_data_filename.format(train_test))
         )
