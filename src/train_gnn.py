@@ -40,7 +40,7 @@ def setup_parser():
 def main(args):
     set_all_seeds(12347)
     device = args.device
-    print("parse args")
+    print("parse args1845")
     root_dir = Path(__file__).parent.parent
     root_dir = str(root_dir)
 
