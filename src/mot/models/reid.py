@@ -5,17 +5,23 @@ from torch.nn import functional as F
 import torchvision.transforms.functional as TF
 import market.metrics as metrics
 from mot.utils import ltrb_to_ltwh
+from typing import Callable
 
 
 def compute_iou_reid_distance_matrix(
-    track_features,
-    pred_features,
-    track_boxes,
-    boxes,
-    metric_fn,
-    unmatched_cost=255.0,
-    alpha=0.0,
-):
+    track_features: torch.Tensor,
+    pred_features: torch.Tensor,
+    track_boxes: torch.Tensor,
+    boxes: torch.Tensor,
+    metric_fn: Callable,
+    unmatched_cost: float = 255.0,
+    alpha: float = 0.0,
+) -> np.array:
+    """
+    calculate distance between existing tracks and new bboxes
+
+    """
+
     # UNMATCHED_COST = 255.0
 
     # Build cost matrix.
@@ -42,13 +48,18 @@ def compute_iou_reid_distance_matrix(
     return distance
 
 
-def get_crop_from_boxes(boxes, frame, height=256, width=128):
+def get_crop_from_boxes(
+    boxes: torch.Tensor, frame: torch.Tensor, height: int = 256, width: int = 128
+) -> list[torch.Tensor]:
     """Crops all persons from a frame given the boxes.
     Args:
-            boxes: The bounding boxes.
-            frame: The current frame.
-            height (int, optional): [description]. Defaults to 256.
-            width (int, optional): [description]. Defaults to 128.
+        boxes: The bounding boxes.
+        frame: The current frame.
+        height (int, optional): [description]. Defaults to 256.
+        width (int, optional): [description]. Defaults to 128.
+    Returns:
+        list with small images inside bbox and resized to (height, width) shape
+
     """
     person_crops = []
     norm_mean = [0.485, 0.456, 0.406]  # imagenet mean
@@ -63,7 +74,17 @@ def get_crop_from_boxes(boxes, frame, height=256, width=128):
     return person_crops
 
 
-def compute_reid_features(model, crops):
+def compute_reid_features(
+    model: torch.nn.Module, crops: list[torch.Tensor]
+) -> torch.Tensor:
+    """
+    compute reid feature for each pedestrian crop and stack in umion tensor
+    Args:
+        model: reidentification model
+        crops: list with
+    Returns:
+        f_: reid feature per each crop pedestrian
+    """
     f_ = []
     device = list(model.parameters())[0].device
     model.eval()

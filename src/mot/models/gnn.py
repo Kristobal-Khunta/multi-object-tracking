@@ -5,7 +5,7 @@ from ..utils import ltrb_to_xcycwh, cosine_distance
 
 
 class BipartiteNeuralMessagePassingLayer(nn.Module):
-    def __init__(self, node_dim, edge_dim, dropout=0.0):
+    def __init__(self, node_dim: int, edge_dim: int, dropout: float = 0.0) -> None:
         super().__init__()
 
         edge_in_dim = (
@@ -34,9 +34,14 @@ class BipartiteNeuralMessagePassingLayer(nn.Module):
             ]
         )
 
-    def edge_update(self, edge_embeds, nodes_a_embeds, nodes_b_embeds):
+    def edge_update(
+        self,
+        edge_embeds: torch.Tensor,
+        nodes_a_embeds: torch.Tensor,
+        nodes_b_embeds: torch.Tensor,
+    ) -> tuple[torch.Tensor]:
         """
-        Node-to-edge updates, as descibed in slide 71, lecture 5.
+        Node-to-edge updates
         Args:
             edge_embeds: torch.Tensor with shape (|A|, |B|, 2 x edge_dim)
             nodes_a_embeds: torch.Tensor with shape (|A|, node_dim)
@@ -51,11 +56,17 @@ class BipartiteNeuralMessagePassingLayer(nn.Module):
 
         # edge_in has shape (|A|, |B|, 2*node_dim + 2*edge_dim)
         edge_in = torch.cat((nodes_a_in, edge_embeds, nodes_b_in), dim=-1)
-        return self.edge_mlp(edge_in)
+        updated_edge_feats = self.edge_mlp(edge_in)
+        return updated_edge_feats
 
-    def node_update(self, edge_embeds, nodes_a_embeds, nodes_b_embeds):
+    def node_update(
+        self,
+        edge_embeds: torch.Tensor,
+        nodes_a_embeds: torch.Tensor,
+        nodes_b_embeds: torch.Tensor,
+    ) -> tuple[torch.Tensor]:
         """
-        Edge-to-node updates, as descibed in slide 75, lecture 5.
+        Edge-to-node updates
 
         Args:
             edge_embeds: torch.Tensor with shape (|A|, |B|, edge_dim)
@@ -89,20 +100,39 @@ class BipartiteNeuralMessagePassingLayer(nn.Module):
             dim=-1,
         )  # Has shape (|B|, node_dim + edge_dim)
 
-        nodes_a = self.node_mlp(nodes_a_in)
-        nodes_b = self.node_mlp(nodes_b_in)
+        updated_nodes_a_embeds = self.node_mlp(nodes_a_in)
+        updated_nodes_b_embeds = self.node_mlp(nodes_b_in)
 
-        return nodes_a, nodes_b
+        return updated_nodes_a_embeds, updated_nodes_b_embeds
 
-    def forward(self, edge_embeds, nodes_a_embeds, nodes_b_embeds):
+    def forward(
+        self,
+        edge_embeds: torch.Tensor,
+        nodes_a_embeds: torch.Tensor,
+        nodes_b_embeds: torch.Tensor,
+    ) -> tuple[torch.Tensor]:
+        """Edge-to-node updates, as descibed in slide 75, lecture 5.
+
+        Args:
+            edge_embeds: torch.Tensor with shape (|A|, |B|, edge_dim)
+            nodes_a_embeds: torch.Tensor with shape (|A|, node_dim)
+            nodes_b_embeds: torch.Tensor with shape (|B|, node_dim)
+
+        returns:
+            tuple(
+                edge_embeds_latent = torch.Tensor with shape (|A|, |B|, edge_dim)
+                updated_nodes_a_embeds: torch.Tensor with shape (|A|, node_dim),
+                updated_nodes_b_embeds: torch.Tensor with shape (|B|, node_dim)
+                )
+        """
         edge_embeds_latent = self.edge_update(
             edge_embeds, nodes_a_embeds, nodes_b_embeds
         )
-        nodes_a_latent, nodes_b_latent = self.node_update(
+        updated_nodes_a_embeds, updated_nodes_a_embeds = self.node_update(
             edge_embeds_latent, nodes_a_embeds, nodes_b_embeds
         )
 
-        return edge_embeds_latent, nodes_a_latent, nodes_b_latent
+        return edge_embeds_latent, updated_nodes_a_embeds, updated_nodes_a_embeds
 
 
 class SimilarityNet(nn.Module):
@@ -114,7 +144,7 @@ class SimilarityNet(nn.Module):
         edges_in_dim,
         num_steps,
         dropout=0.0,
-    ):
+    ) -> None:
         super().__init__()
         self.graph_net = BipartiteNeuralMessagePassingLayer(
             node_dim=node_dim, edge_dim=edge_dim, dropout=dropout
@@ -136,7 +166,12 @@ class SimilarityNet(nn.Module):
         )
 
     @staticmethod
-    def compute_edge_feats(track_coords, current_coords, track_t, curr_t):
+    def compute_edge_feats(
+        track_coords: torch.Tensor,
+        current_coords: torch.Tensor,
+        track_t: torch.Tensor,
+        curr_t: torch.Tensor,
+    ) -> torch.Tensor:
         """
         Computes initial edge feature tensor
 
@@ -181,8 +216,14 @@ class SimilarityNet(nn.Module):
         return edge_feats  # has shape (num_trakcs, num_boxes, 5)
 
     def forward(
-        self, track_app, current_app, track_coords, current_coords, track_t, curr_t
-    ):
+        self,
+        track_app: torch.Tensor,
+        current_app: torch.Tensor,
+        track_coords: torch.Tensor,
+        current_coords: torch.Tensor,
+        track_t: torch.Tensor,
+        curr_t: torch.Tensor,
+    ) -> torch.Tensor:
         """
         Args:
             track_app: track's reid embeddings, torch.Tensor with shape (num_tracks, 512)
