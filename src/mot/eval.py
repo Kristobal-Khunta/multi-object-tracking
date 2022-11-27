@@ -4,10 +4,12 @@ import numpy as np
 import torch
 from tqdm.auto import tqdm
 import time
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
+from typing import Union
+from mot.tracker.base import Tracker
 
 
-def get_mot_accum(results, seq):
+def get_mot_accum(results: dict, seq: list[dict, int]) -> mm.MOTAccumulator:
     mot_accum = mm.MOTAccumulator(auto_id=True)
 
     for i in range(len(seq)):
@@ -63,7 +65,9 @@ def get_mot_accum(results, seq):
     return mot_accum
 
 
-def evaluate_mot_accums(accums, names, generate_overall=False):
+def evaluate_mot_accums(
+    accums: mm.MOTAccumulator, names: list, generate_overall: bool = False
+):
     mh = mm.metrics.create()
     summary = mh.compute_many(
         accums,
@@ -81,13 +85,12 @@ def evaluate_mot_accums(accums, names, generate_overall=False):
     return summary
 
 
-def evaluate_obj_detect(model, data_loader):
+def evaluate_obj_detect(model: torch.nn.Module, data_loader: DataLoader) -> None:
     model.eval()
     device = list(model.parameters())[0].device
     results = {}
     for imgs, targets in tqdm(data_loader):
         imgs = [img.to(device) for img in imgs]
-
         with torch.no_grad():
             preds = model(imgs)
 
@@ -100,7 +103,12 @@ def evaluate_obj_detect(model, data_loader):
     data_loader.dataset.print_eval(results)
 
 
-def run_tracker(val_sequences, tracker, database=None, output_dir=None):
+def run_tracker(
+    val_sequences: Dataset,
+    tracker: Tracker,
+    database: dict | None = None,
+    output_dir: str | None = None,
+) -> tuple:
     time_total = 0
     mot_accums = []
     results_seq = {}

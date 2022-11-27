@@ -12,22 +12,14 @@ from mot.eval import run_tracker
 from mot.models.gnn import SimilarityNet
 from mot.models.object_detector import FRCNN_FPN
 from mot.tracker.advanced import MPNTracker
-
+from mot.utils import set_all_seeds
 # from mot.visualize import plot_sequence
 
 mm.lap.default_solver = "lap"
 
 
-def set_all_seeds(seed):
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    np.random.seed(seed)
-    torch.backends.cudnn.deterministic = True
-    return None
-
-
-def setup_parser():
-    """Set up Python's ArgumentParser with data, model, trainer, and other arguments."""
+def setup_parser() :
+    """Set up Python's ArgumentParser with seq_name, device, and other arguments."""
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--predefined_features", type=bool, default=False)
     parser.add_argument("--seq_name", type=str, default="MOT16-val2")
@@ -41,7 +33,7 @@ def main():
     parser = setup_parser()
     args = parser.parse_args()
     set_all_seeds(12347)
-    print('tms')
+    print("tms")
     root_dir = Path(__file__).parent.parent
     root_dir = str(root_dir)
 

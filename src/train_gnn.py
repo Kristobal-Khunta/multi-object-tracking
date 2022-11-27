@@ -13,20 +13,13 @@ from mot.eval import run_tracker
 from mot.models.gnn import SimilarityNet
 from mot.tracker.advanced import MPNTracker
 from mot.trainer import train_one_epoch
+from mot.utils import set_all_seeds
 
 mm.lap.default_solver = "lap"
 
 
-def set_all_seeds(seed):
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    np.random.seed(seed)
-    torch.backends.cudnn.deterministic = True
-    return None
-
-
 def setup_parser():
-    """Set up Python's ArgumentParser with data, model, trainer, and other arguments."""
+    """Set up Python's ArgumentParser with tracker settings and other arguments."""
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--max_epoch", type=int, default=30)
     parser.add_argument("--eval_freq", type=int, default=1)
@@ -37,26 +30,26 @@ def setup_parser():
     return parser
 
 
-def main(args):
+def main():
+    parser = setup_parser()
+    args = parser.parse_args()
     set_all_seeds(12347)
-    device = args.device
+
     print("parse args1845")
     root_dir = Path(__file__).parent.parent
     root_dir = str(root_dir)
-
     train_db = torch.load(
         osp.join(root_dir, "data/preprocessed_data/preprocessed_data_train_2.pth")
     )
-    # Define our model, and init
+    # Define our model
     similarity_net = SimilarityNet(
-        reid_network=None,  # Not needed since we work with precomputed features
         node_dim=32,
         edge_dim=64,
         reid_dim=512,
         edges_in_dim=6,
         num_steps=10,
     )
-    similarity_net = similarity_net.to(device)
+    similarity_net = similarity_net.to(args.device)
     # We only keep two sequences for validation. You can
     dataset = LongTrackTrainingDataset(
         dataset="MOT16-train_wo_val2",
@@ -84,7 +77,7 @@ def main(args):
         train_one_epoch(
             model=similarity_net,
             data_loader=data_loader,
-            device=device,
+            device=args.device,
             optimizer=optimizer,
             print_freq=args.print_freq,
         )
@@ -114,6 +107,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = setup_parser()
-    args = parser.parse_args()
-    main(args)
+    main()

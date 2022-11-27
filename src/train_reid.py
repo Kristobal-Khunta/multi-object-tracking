@@ -12,17 +12,10 @@ from market.datamanager import ImageDataManager
 from market.eval import evaluate
 from market.models import build_model
 from mot.models.reid_losses import CombinedLoss
-from mot.utils import cosine_distance, euclidean_squared_distance
+from mot.utils import cosine_distance, euclidean_squared_distance, set_all_seeds
 
 mm.lap.default_solver = "lap"
 
-
-def set_all_seeds(seed):
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    np.random.seed(seed)
-    torch.backends.cudnn.deterministic = True
-    return None
 
 
 def setup_parser():

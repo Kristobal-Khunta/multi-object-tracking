@@ -81,7 +81,7 @@ def compute_reid_features(
     compute reid feature for each pedestrian crop and stack in umion tensor
     Args:
         model: reidentification model
-        crops: list with
+        crops: list with pedestrian crop resized to size, that model expects
     Returns:
         f_: reid feature per each crop pedestrian
     """

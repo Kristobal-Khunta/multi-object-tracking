@@ -1,12 +1,15 @@
 import torch
 import tqdm
 from torch.nn import functional as F
+from torch.utils.data import Dataloader
 
 
 @torch.no_grad()
 def compute_class_metric(
-    pred, target, class_metrics=("accuracy", "recall", "precision")
-):
+    pred: torch.Tensor,
+    target: torch.Tensor,
+    class_metrics: tuple[str] = ("accuracy", "recall", "precision"),
+) -> dict[str, list]:
     TP = ((target == 1) & (pred == 1)).sum().float()
     FP = ((target == 0) & (pred == 1)).sum().float()
     TN = ((target == 0) & (pred == 0)).sum().float()
@@ -29,8 +32,13 @@ def compute_class_metric(
 
 
 def train_one_epoch(
-    model, data_loader, optimizer, device="cpu", _unused_accum_batches=1, print_freq=200
-):
+    model: torch.nn.Module,
+    data_loader: Dataloader,
+    optimizer: torch.optim,
+    device="cpu",
+    _unused_accum_batches: int = 1,
+    print_freq: int = 200,
+) -> None:
     model.train()
     model = model.to(device)
     # device = next(model.parameters()).device  # skipcq: PTC-W0063
@@ -52,7 +60,7 @@ def train_one_epoch(
             current_feats = curr_frame["features"].to(device)
             current_coords = curr_frame["boxes"].to(device)
             curr_ids = curr_frame["ids"].to(device)
-            
+
             # time feats
             track_t = past_frame["time"].to(device)
             curr_t = curr_frame["time"].to(device)

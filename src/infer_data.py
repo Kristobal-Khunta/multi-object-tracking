@@ -11,9 +11,8 @@ from mot.data.data_track import MOT16Sequences
 from mot.models.object_detector import FRCNN_FPN
 from mot.models.reid import compute_reid_features, get_crop_from_boxes
 
-
 def setup_parser():
-    """Set up Python's ArgumentParser with data, model, trainer, and other arguments."""
+    """Set up Python's ArgumentParser with device"""
     parser = argparse.ArgumentParser(add_help=False)
 
     parser.add_argument("--device", type=str, default="cpu")
@@ -21,7 +20,9 @@ def setup_parser():
     return parser
 
 
-def prepare_obj_detect_model(weight_path, obj_detect_nms_thresh=0.3):
+def prepare_obj_detect_model(
+    weight_path: str, obj_detect_nms_thresh: float = 0.3
+) -> torch.nn.Module:
     obj_detect = FRCNN_FPN(num_classes=2, nms_thresh=obj_detect_nms_thresh)
     obj_detect_state_dict = torch.load(
         weight_path, map_location=lambda storage, loc: storage
@@ -30,7 +31,7 @@ def prepare_obj_detect_model(weight_path, obj_detect_nms_thresh=0.3):
     return obj_detect
 
 
-def prepare_reid_model(weight_path):
+def prepare_reid_model(weight_path: str) -> torch.nn.Module:
     #### Load reid model ####
     reid_model = build_model("resnet34", 751, loss="softmax", pretrained=False)
     reid_ckpt = torch.load(weight_path, map_location=lambda storage, loc: storage)
