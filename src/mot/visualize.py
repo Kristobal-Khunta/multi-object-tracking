@@ -157,19 +157,20 @@ colors = [
 ]
 
 
-def plot_sequence(tracks, db, first_n_frames=None):
+def plot_sequence(tracks, dataset, first_n_frames=None):
     """Plots a whole sequence
 
     Args:
         tracks (dict): The dictionary containing the track dictionaries in the form tracks[track_id][frame] = bb
         db (torch.utils.data.Dataset): The dataset with the images belonging to the tracks (e.g. MOT_Sequence object)
+        first_n_frames (int): eval only first N frames from all sequence
     """
     # infinite color loop
     cyl = cy("ec", colors)
     loop_cy_iter = cyl()
     styles = defaultdict(lambda: next(loop_cy_iter))  # skipcq: PTC-W0063
 
-    for i, v in enumerate(db):
+    for i, v in enumerate(dataset):
         img = v["img"].mul(255).permute(1, 2, 0).byte().numpy()
         width, height, _ = img.shape
 

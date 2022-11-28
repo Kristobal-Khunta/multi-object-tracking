@@ -1,3 +1,4 @@
+import torch
 import motmetrics as mm
 import numpy as np
 
@@ -11,7 +12,7 @@ mm.lap.default_solver = "lap"
 class BaselineTracker(Tracker):
     """The main tracking file, here is where magic happens."""
 
-    def __init__(self, obj_detect):
+    def __init__(self, obj_detect: torch.nn.Module):
         self.obj_detect = obj_detect
         self.tracks = []
         self.track_num = 0
@@ -19,7 +20,7 @@ class BaselineTracker(Tracker):
         self.results = {}
         self.mot_accum = None
 
-    def step(self, frame):
+    def step(self, frame: dict):
         """This function should be called every timestep to perform tracking with a blob
         containing the image information.
         """
@@ -33,13 +34,18 @@ class BaselineTracker(Tracker):
         self.data_association(boxes, scores)
         self.update_results()
 
-    def data_association(self, boxes, scores):
+    def data_association(self, boxes: torch.Tensor, scores: torch.Tensor):
+        """
+        Args:
+            boxes: torch.Tensor with shape (N,4)
+            scores: torch.Tensor with shape (N,)
+        """
         self.tracks = []
         self.add(boxes, scores)
 
 
 class IoUTracker(Tracker):
-    def __init__(self, obj_detect):
+    def __init__(self, obj_detect: torch.nn.Module) -> None:
         self.obj_detect = obj_detect
         self.tracks = []
         self.track_num = 0
@@ -47,7 +53,7 @@ class IoUTracker(Tracker):
         self.results = {}
         self.mot_accum = None
 
-    def step(self, frame):
+    def step(self, frame: dict):
         """This function should be called every timestep to perform tracking with a blob
         containing the image information.
         """
@@ -61,7 +67,12 @@ class IoUTracker(Tracker):
         self.data_association(boxes, scores)
         self.update_results()
 
-    def data_association(self, boxes, scores):
+    def data_association(self, boxes: torch.Tensor, scores: torch.Tensor) -> None:
+        """
+        Args:
+            boxes: torch.Tensor with shape (N,4)
+            scores: torch.Tensor with shape (N,)
+        """
         # self.im_index - index of current proceeded image
         # num existing tracks = self.tracks = 0 at first step
         # new bboxes form new frame = boxes
@@ -103,7 +114,7 @@ class IoUTracker(Tracker):
 
 
 class HungarianIoUTracker(IoUTracker):
-    def __init__(self, obj_detect):
+    def __init__(self, obj_detect: torch.nn.Module) -> None:
         super().__init__(obj_detect=obj_detect)
         self.tracks = []
         self.track_num = 0
@@ -112,7 +123,12 @@ class HungarianIoUTracker(IoUTracker):
         self.mot_accum = None
         self._UNMATCHED_COST = 255.0
 
-    def data_association(self, boxes, scores):
+    def data_association(self, boxes: torch.Tensor, scores: torch.Tensor) -> None:
+        """
+        Args:
+            boxes: torch.Tensor with shape (N,4)
+            scores: torch.Tensor with shape (N,)
+        """
         if self.tracks:
             # track_ids = [t.id for t in self.tracks] not needed in this tracker
             track_boxes = np.stack([t.box.numpy() for t in self.tracks], axis=0)
@@ -132,8 +148,22 @@ class HungarianIoUTracker(IoUTracker):
             # No tracks exist.
             self.add(boxes, scores)
 
-    def update_tracks(self, row_idx, col_idx, distance, boxes, scores):
-
+    def update_tracks(
+        self,
+        row_idx: np.array,
+        col_idx: np.array,
+        distance: np.array,
+        boxes: torch.Tensor,
+        scores: torch.Tensor,
+    ) -> None:
+        """
+        Args:
+            row_idx: array of row indices giving the optimal assignment
+            col_idx: array of corresponding column indices giving the optimal assignment
+            distance: np.arrayThe cost matrix of the bipartite graph.
+            boxes: torch.Tensor with shape (N,4)
+            scores: torch.Tensor with shape (N,)
+        """
         min_dist = distance[row_idx, col_idx]
 
         # If the costs are equal to _UNMATCHED_COST, it's not a

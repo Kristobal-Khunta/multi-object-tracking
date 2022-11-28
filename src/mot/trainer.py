@@ -1,7 +1,6 @@
 import torch
 import tqdm
 from torch.nn import functional as F
-from torch.utils.data import Dataloader
 
 
 @torch.no_grad()
@@ -33,7 +32,7 @@ def compute_class_metric(
 
 def train_one_epoch(
     model: torch.nn.Module,
-    data_loader: Dataloader,
+    data_loader: torch.utils.data.DataLoader,
     optimizer: torch.optim,
     device="cpu",
     _unused_accum_batches: int = 1,

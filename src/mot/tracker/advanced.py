@@ -72,7 +72,24 @@ class ReIDHungarianTracker(Tracker):
             # No tracks exist.
             self.add(boxes, scores, pred_features)
 
-    def update_tracks(self, row_idx, col_idx, distance, boxes, scores, pred_features):
+    def update_tracks(
+        self,
+        row_idx,
+        col_idx,
+        distance,
+        boxes,
+        scores,
+        pred_features: torch.Tensor | list[torch.Tensor],
+    ):
+        """
+        Args:
+            row_idx: array of row indices giving the optimal assignment
+            col_idx: array of corresponding column indices giving the optimal assignment
+            distance: np.arrayThe cost matrix of the bipartite graph.
+            boxes: torch.Tensor with shape (N,4)
+            scores: torch.Tensor with shape (N,)
+            pred_features:  torch.Tensor with shape (N, num_features)
+        """
         # row_idx and col_idx are indices into track_boxes and boxes.
         # row_idx[i] and col_idx[i] define a match.
         # distance[row_idx[i], col_idx[i]] define the cost for that matching.
@@ -134,7 +151,26 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
 
         self.im_index += 1
 
-    def update_tracks(self, row_idx, col_idx, distance, boxes, scores, pred_features):
+    def update_tracks(
+        self,
+        row_idx: np.array,
+        col_idx: np.array,
+        distance: np.array,
+        boxes: torch.Tensor,
+        scores: torch.Tensor,
+        pred_features: list[torch.Tensor] | torch.Tensor,
+    )->None:
+        """
+        Args:
+            row_idx: np.array with shape (num_tracks,) 
+                    array of row indices giving the optimal assignment
+            col_idx: array  with shape (num_detections,) of corresponding column indices giving the optimal assignment
+            distance: np.array with shape (num_tracks,num_detections)
+                    The cost matrix of the bipartite graph.
+            boxes: torch.Tensor with shape (N,4)
+            scores: torch.Tensor with shape (N,)
+            pred_features:  torch.Tensor with shape (N, num_features)
+        """
         track_ids = [t.id for t in self.tracks]
 
         unmatched_track_ids = []

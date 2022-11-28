@@ -11,7 +11,14 @@ mm.lap.default_solver = "lap"
 class Track:
     """This class contains all necessary for every individual track."""
 
-    def __init__(self, box, score, track_id, feature=None, inactive=0):
+    def __init__(
+        self,
+        box: torch.Tensor,
+        score: float,
+        track_id: int,
+        feature: torch.Tensor | None = None,
+        inactive: int = 0,
+    ):
         self.id = track_id
         self.box = box
         self.score = score
@@ -19,18 +26,17 @@ class Track:
         self.inactive = inactive
         self.max_features_num = 10
 
-    def add_feature(self, feature):
+    def add_feature(self, feature: torch.Tensor) -> None:
         """Adds new appearance features to the object."""
         self.feature.append(feature)
         if len(self.feature) > self.max_features_num:
             self.feature.popleft()
 
-    def get_feature(self):
+    def get_feature(self) -> torch.Tensor:
         if len(self.feature) > 1:
             feature = torch.stack(list(self.feature), dim=0)
         else:
             feature = self.feature[0].unsqueeze(0)
-        # return feature.mean(0, keepdim=False)
         return feature[-1]
 
     def __repr__(self):
@@ -47,7 +53,7 @@ class Tracker(abc.ABC):
         self.results = {}
         self.mot_accum = None
 
-    def reset(self, hard=True):
+    def reset(self, hard: bool = True) -> None:
         self.tracks = []
 
         if hard:
@@ -55,17 +61,17 @@ class Tracker(abc.ABC):
             self.results = {}
             self.im_index = 0
 
-    def get_pos(self):
+    def get_pos(self) -> torch.Tensor:
         """Get the positions of all active tracks."""
         if len(self.tracks) == 1:
             box = self.tracks[0].box
         elif len(self.tracks) > 1:
             box = torch.stack([t.box for t in self.tracks], 0)
         else:
-            box = torch.zeros(0).cuda()
+            box = torch.zeros(0)
         return box
 
-    def update_results(self):
+    def update_results(self) -> None:
         # results
         for t in self.tracks:
             if t.id not in self.results:
@@ -76,11 +82,25 @@ class Tracker(abc.ABC):
 
         self.im_index += 1
 
-    def get_results(self):
+    def get_results(self) -> dict:
         return self.results
 
-    def add(self, new_boxes, new_scores, new_features):
-        """Initializes new Track objects and saves them."""
+    def add(
+        self,
+        new_boxes: torch.Tensor,
+        new_scores: torch.Tensor,
+        new_features: list[torch.Tensor],
+    ) -> None:
+        """Initializes new Track objects and saves them.
+        Args:
+            boxes: torch.Tensor with shape (N,4)
+            new_scores: torch.Tensor with shape (N,)
+            new_features: list with len N,
+                          each element reid feature matrix (torch.tensor)
+                          with shape depends on reid model
+                          
+
+        """
         num_new = len(new_boxes)
         for i in range(num_new):
             self.tracks.append(
@@ -93,9 +113,8 @@ class Tracker(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def step(self, frame):
+    def step(self, frame: dict):
         """This function should be called every timestep to perform tracking with a blob
         containing the image information.
         """
         raise NotImplementedError
-

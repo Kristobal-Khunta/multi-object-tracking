@@ -3,7 +3,6 @@ import os.path as osp
 from pathlib import Path
 
 import motmetrics as mm
-import numpy as np
 import torch
 from torch.utils.data import DataLoader
 

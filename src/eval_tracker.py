@@ -33,7 +33,6 @@ def main():
     parser = setup_parser()
     args = parser.parse_args()
     set_all_seeds(12347)
-    print("tms")
     root_dir = Path(__file__).parent.parent
     root_dir = str(root_dir)
 

@@ -5,7 +5,6 @@ import torch
 from tqdm.auto import tqdm
 import time
 from torch.utils.data import DataLoader, Dataset
-from typing import Union
 from mot.tracker.base import Tracker
 
 
