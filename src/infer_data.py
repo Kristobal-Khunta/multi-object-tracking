@@ -120,7 +120,6 @@ def main():
                         gt = None
 
                     db[str(seq)].append({"det": det, "gt": gt})
-            assert len(db[str(seq)]) == len(data_loader)
             if len(db[str(seq)]) != len(data_loader):
                 raise AssertionError("lesn db and data_loader must be equal ")
 
