@@ -5,7 +5,6 @@ from .data_track import MOT16Sequences
 
 
 class LongTrackTrainingDataset(Dataset):
-    # TODO: More past frames
     def __init__(
         self,
         dataset,
@@ -98,7 +97,7 @@ class LongTrackTrainingDataset(Dataset):
         # return aug_boxes, ids, vis, embeddings
         return aug_boxes, keep
 
-    def merge_frame_data(self, past_frame_data, first_past_frame):  # skipcq: PYL-R0201
+    def merge_frame_data(self, past_frame_data: dict, first_past_frame: dict)->dict:  # skipcq: PYL-R0201
         """Only keep the last appearance for every ID"""
         final_data = {}
         for t_step, frame_data in enumerate(past_frame_data, first_past_frame):
