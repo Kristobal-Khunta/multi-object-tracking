@@ -135,3 +135,4 @@ MNIST
 *.txt
 *.pth
 *.gif 
+*.csv

@@ -50,6 +50,7 @@ class BipartiteNeuralMessagePassingLayer(nn.Module):
         returns:
             updated_edge_feats = torch.Tensor with shape (|A|, |B|, edge_dim)
         """
+
         n_nodes_a, n_nodes_b, _ = edge_embeds.shape
         nodes_a_in = nodes_a_embeds.unsqueeze(1).expand((n_nodes_a, n_nodes_b, -1))
         nodes_b_in = nodes_b_embeds.unsqueeze(0).expand((n_nodes_a, n_nodes_b, -1))
@@ -128,11 +129,11 @@ class BipartiteNeuralMessagePassingLayer(nn.Module):
         edge_embeds_latent = self.edge_update(
             edge_embeds, nodes_a_embeds, nodes_b_embeds
         )
-        updated_nodes_a_embeds, updated_nodes_a_embeds = self.node_update(
+        updated_nodes_a_embeds, updated_nodes_b_embeds = self.node_update(
             edge_embeds_latent, nodes_a_embeds, nodes_b_embeds
         )
 
-        return edge_embeds_latent, updated_nodes_a_embeds, updated_nodes_a_embeds
+        return edge_embeds_latent, updated_nodes_a_embeds, updated_nodes_b_embeds
 
 
 class SimilarityNet(nn.Module):
@@ -250,7 +251,6 @@ class SimilarityNet(nn.Module):
         edge_feats = torch.cat((pos_edge_feats, dist_reid.unsqueeze(-1)), dim=-1)
         edge_embeds = self.edge_in_mlp(edge_feats)
         initial_edge_embeds = edge_embeds.clone()
-
         # Get initial node embeddings, reduce dimensionality from 512 to node_dim
         track_embeds = F.relu(self.cnn_linear(track_app))
         curr_embeds = F.relu(self.cnn_linear(current_app))
@@ -258,6 +258,7 @@ class SimilarityNet(nn.Module):
         classified_edges = []
         for _ in range(self.num_steps):
             edge_embeds = torch.cat((edge_embeds, initial_edge_embeds), dim=-1)
+
             edge_embeds, track_embeds, curr_embeds = self.graph_net(
                 edge_embeds=edge_embeds,
                 nodes_a_embeds=track_embeds,

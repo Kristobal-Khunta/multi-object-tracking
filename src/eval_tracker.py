@@ -12,12 +12,11 @@ from mot.models.gnn import SimilarityNet
 from mot.models.object_detector import FRCNN_FPN
 from mot.tracker.advanced import MPNTracker
 from mot.utils import set_all_seeds
-# from mot.visualize import plot_sequence
 
 mm.lap.default_solver = "lap"
 
 
-def parse_args() :
+def parse_args():
     """Set up Python's ArgumentParser with seq_name, device, and other arguments."""
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--predefined_features", type=bool, default=False)
@@ -31,7 +30,7 @@ def parse_args() :
 
 def main():
     args = parse_args()
-    
+
     set_all_seeds(12347)
     root_dir = Path(__file__).parent.parent
     root_dir = str(root_dir)
@@ -101,12 +100,16 @@ def main():
     results_mot, results_seq = run_tracker(
         val_sequences, tracker=tracker, database=database, output_dir=None
     )
-    # plot_sequence(
-    #    results_seq["MOT16-02"],
-    #    [s for s in val_sequences if str(s) == "MOT16-02"][0],
-    #    first_n_frames=3,
-    # )
-    print(results_mot)
+    from mot.visualize import plot_sequence
+
+    plot_sequence(
+        results_seq["MOT16-02"],
+        [s for s in val_sequences if str(s) == "MOT16-02"][0],
+        first_n_frames=3,
+        dst_path=f"{root_dir}/output/figs/seq_det_example.png",
+    )
+    print(type(results_mot))
+    results_mot.to_csv(f"{root_dir}/output/dfs/mot_results.csv")
 
 
 if __name__ == "__main__":
