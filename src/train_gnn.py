@@ -17,7 +17,7 @@ from mot.utils import set_all_seeds
 mm.lap.default_solver = "lap"
 
 
-def setup_parser():
+def parse_args():
     """Set up Python's ArgumentParser with tracker settings and other arguments."""
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--max_epoch", type=int, default=30)
@@ -26,12 +26,13 @@ def setup_parser():
     parser.add_argument("--max_patient", type=int, default=20)
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--help", "-h", action="help")
-    return parser
+    args = parser.parse_args()
+
+    return args
 
 
 def main():
-    parser = setup_parser()
-    args = parser.parse_args()
+    args = parse_args()
     set_all_seeds(12347)
 
     print("parse args1845")

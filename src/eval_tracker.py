@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 
 import motmetrics as mm
-import numpy as np
 import torch
 
 from market.models import build_model
@@ -18,7 +17,7 @@ from mot.utils import set_all_seeds
 mm.lap.default_solver = "lap"
 
 
-def setup_parser() :
+def parse_args() :
     """Set up Python's ArgumentParser with seq_name, device, and other arguments."""
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--predefined_features", type=bool, default=False)
@@ -26,12 +25,13 @@ def setup_parser() :
     parser.add_argument("--max_patient", type=int, default=20)
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--help", "-h", action="help")
-    return parser
+    args = parser.parse_args()
+    return args
 
 
 def main():
-    parser = setup_parser()
-    args = parser.parse_args()
+    args = parse_args()
+    
     set_all_seeds(12347)
     root_dir = Path(__file__).parent.parent
     root_dir = str(root_dir)

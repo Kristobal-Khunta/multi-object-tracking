@@ -3,9 +3,7 @@ import time
 from pathlib import Path
 
 import motmetrics as mm
-import numpy as np
 import torch
-from scipy.optimize import linear_sum_assignment as linear_assignment
 
 from market import utils
 from market.datamanager import ImageDataManager
@@ -17,8 +15,7 @@ from mot.utils import cosine_distance, euclidean_squared_distance, set_all_seeds
 mm.lap.default_solver = "lap"
 
 
-
-def setup_parser():
+def parse_args():
     """Set up Python's ArgumentParser with data, model, trainer, and other arguments."""
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
@@ -36,7 +33,8 @@ def setup_parser():
     parser.add_argument("--epoch_eval_freq", type=int, default=5)
     parser.add_argument("--print_freq", type=int, default=50)
     parser.add_argument("--help", "-h", action="help")
-    return parser
+    args = parser.parse_args()
+    return args
 
 
 name2metricfn = {
@@ -47,8 +45,7 @@ name2metricfn = {
 
 def main():
     set_all_seeds(12347)
-    parser = setup_parser()
-    args = parser.parse_args()
+    args = parse_args()
 
     model_type = args.model_type
 
