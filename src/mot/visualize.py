@@ -157,7 +157,7 @@ colors = [
 ]
 
 
-def plot_sequence(tracks, dataset, first_n_frames=None):
+def plot_sequence(tracks, dataset, first_n_frames=None, dst_path=None):
     """Plots a whole sequence
 
     Args:
@@ -209,6 +209,8 @@ def plot_sequence(tracks, dataset, first_n_frames=None):
 
         plt.axis("off")
         plt.show()
+        if dst_path:
+            plt.savefig(dst_path)
 
         if first_n_frames is not None and first_n_frames - 1 == i:
             break
