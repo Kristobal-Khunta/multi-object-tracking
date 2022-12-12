@@ -40,8 +40,6 @@ def train_one_epoch(
 ) -> None:
     model.train()
     model = model.to(device)
-    # device = next(model.parameters()).device  # skipcq: PTC-W0063
-    # model = model.to(device)
     metrics_accum = {"loss": 0.0, "accuracy": 0.0, "recall": 0.0, "precision": 0.0}
     for i, batch in tqdm.tqdm(enumerate(data_loader)):
         optimizer.zero_grad()

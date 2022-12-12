@@ -12,6 +12,7 @@ from mot.models.gnn import SimilarityNet
 from mot.models.object_detector import FRCNN_FPN
 from mot.tracker.advanced import MPNTracker
 from mot.utils import set_all_seeds
+from mot.visualize import plot_sequence
 
 mm.lap.default_solver = "lap"
 
@@ -100,7 +101,6 @@ def main():
     results_mot, results_seq = run_tracker(
         val_sequences, tracker=tracker, database=database, output_dir=None
     )
-    from mot.visualize import plot_sequence
 
     plot_sequence(
         results_seq["MOT16-02"],
@@ -108,7 +108,6 @@ def main():
         first_n_frames=3,
         dst_path=f"{root_dir}/output/figs/seq_det_example.png",
     )
-    print(type(results_mot))
     results_mot.to_csv(f"{root_dir}/output/dfs/mot_results.csv")
 
 

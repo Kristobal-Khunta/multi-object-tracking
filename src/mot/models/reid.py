@@ -19,10 +19,7 @@ def compute_iou_reid_distance_matrix(
 ) -> np.array:
     """
     calculate distance between existing tracks and new bboxes
-
     """
-
-    # UNMATCHED_COST = 255.0
 
     # Build cost matrix.
     distance = mm.distances.iou_matrix(
