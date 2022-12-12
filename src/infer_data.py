@@ -75,12 +75,10 @@ def main():
             with torch.no_grad():
                 for frame_num, frame in tqdm(enumerate(data_loader)):
 
-                    # img = frame["img"]
                     img_path = frame["img_path"][0]
                     assert frame_num + 1 == int(img_path.split("/")[-1].split(".")[0])
 
                     # Store detected boxes
-                    # boxes, scores = obj_detect.detect(frame['img'])
                     boxes, scores = obj_detect.detect(frame["img"])
                     crops = get_crop_from_boxes(boxes, frame["img"])
                     det_reid = compute_reid_features(reid_model, crops)
