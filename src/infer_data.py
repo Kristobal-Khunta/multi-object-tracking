@@ -37,13 +37,12 @@ def prepare_reid_model(weight_path: str) -> torch.nn.Module:
     reid_model = build_model("resnet34", 751, loss="softmax", pretrained=False)
     reid_ckpt = torch.load(weight_path, map_location=lambda storage, loc: storage)
     reid_model.load_state_dict(reid_ckpt)
-    reid_model = reid_model
     return reid_model
 
 
 def main():
     args = parse_args()
-    
+
     device = args.device
     root_dir = Path(__file__).parent.parent
     root_dir = str(root_dir)
@@ -76,8 +75,9 @@ def main():
                 for frame_num, frame in tqdm(enumerate(data_loader)):
 
                     img_path = frame["img_path"][0]
-                    assert frame_num + 1 == int(img_path.split("/")[-1].split(".")[0])
 
+                    if frame_num + 1 != int(img_path.split("/")[-1].split(".")[0]):
+                        raise AssertionError("check frame indexation")
                     # Store detected boxes
                     boxes, scores = obj_detect.detect(frame["img"])
                     crops = get_crop_from_boxes(boxes, frame["img"])
@@ -121,6 +121,8 @@ def main():
 
                     db[str(seq)].append({"det": det, "gt": gt})
             assert len(db[str(seq)]) == len(data_loader)
+            if len(db[str(seq)]) != len(data_loader):
+                raise AssertionError("lesn db and data_loader must be equal ")
 
         torch.save(
             db, os.path.join(root_dir, "data", stored_data_filename.format(train_test))
