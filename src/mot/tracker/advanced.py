@@ -283,7 +283,6 @@ class MPNTracker(LongTermReIDHungarianTracker):
             pred_sim = torch.sigmoid(edges_raw_logits).numpy()
             pred_sim = pred_sim[-1]  # Use predictions at last message passing step
             distance = 1 - pred_sim
-            # print(pred_sim)
             # Do not allow mataches when sim < 0.5, to avoid low-confident associations
             distance = np.where(pred_sim < 0.5, self._UNMATCHED_COST, distance)
 
