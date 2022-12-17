@@ -34,7 +34,7 @@ def train_one_epoch(
     model: torch.nn.Module,
     data_loader: torch.utils.data.DataLoader,
     optimizer: torch.optim,
-    device="cpu",
+    device: str = "cpu",
     _unused_accum_batches: int = 1,
     print_freq: int = 200,
 ) -> None:

@@ -157,13 +157,14 @@ colors = [
 ]
 
 
-def plot_sequence(tracks, dataset, first_n_frames=None, dst_path=None):
+def plot_sequence(tracks , dataset, first_n_frames=None, dst_path=None):
     """Plots a whole sequence
 
     Args:
         tracks (dict): The dictionary containing the track dictionaries in the form tracks[track_id][frame] = bb
         db (torch.utils.data.Dataset): The dataset with the images belonging to the tracks (e.g. MOT_Sequence object)
         first_n_frames (int): eval only first N frames from all sequence
+        dst_path (str): path to save png
     """
     # infinite color loop
     cyl = cy("ec", colors)
@@ -218,6 +219,13 @@ def plot_sequence(tracks, dataset, first_n_frames=None, dst_path=None):
 
 @gif.frame
 def plot_single_tracked_frame(img, img_idx, tracks):
+    """
+    Args:
+        img (np.array) image to plot
+        img_idx (int) corresponding image idx
+        tracks (dict) dict with exsiting tracks on every emage
+    """
+    # TODO add args
     cyl = cy("ec", colors)
     loop_cy_iter = cyl()
     styles = defaultdict(lambda: next(loop_cy_iter))  # skipcq: PTC-W0063

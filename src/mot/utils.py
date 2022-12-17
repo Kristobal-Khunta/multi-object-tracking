@@ -35,6 +35,13 @@ def cosine_distance(input1: torch.Tensor, input2: torch.Tensor) -> torch.Tensor:
 def ltrb_to_ltwh(
     ltrb_boxes: Union[np.array, torch.Tensor]
 ) -> Union[np.array, torch.Tensor]:
+    """
+    convert boxes from left-top right-bottom format to  [x_left_top,y_left_top,width,height]
+    Args:
+        ltrb_boxes: torch.Tensor or np.array with shape (N,4)
+    Return:
+        torch.Tensor or np.array with shape (N,4): boxes 
+    """
     ltwh_boxes = copy.deepcopy(ltrb_boxes)
     ltwh_boxes[:, 2] = ltrb_boxes[:, 2] - ltrb_boxes[:, 0]
     ltwh_boxes[:, 3] = ltrb_boxes[:, 3] - ltrb_boxes[:, 1]
@@ -44,6 +51,13 @@ def ltrb_to_ltwh(
 def ltrb_to_xcycwh(
     ltrb_boxes: Union[np.array, torch.Tensor]
 ) -> Union[np.array, torch.Tensor]:
+    """
+    convert boxes from left-top right-bottom format to  [x_center, y_center, width, height]
+    Args:
+        ltrb_boxes: torch.Tensor or np.array with shape (N,4)
+    Return:
+        torch.Tensor or np.array with shape (N,4): boxes in xcycwh format
+    """
     xcycwh = copy.deepcopy(ltrb_boxes)
     xcycwh[:, 0] = (ltrb_boxes[:, 2] + ltrb_boxes[:, 0]) / 2  # x_ceter = (rx+lx)/2
     xcycwh[:, 1] = (ltrb_boxes[:, 3] + ltrb_boxes[:, 1]) / 2  #
@@ -53,6 +67,9 @@ def ltrb_to_xcycwh(
 
 
 def set_all_seeds(seed: int) -> None:
+    """
+    set all seeds
+    """
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     np.random.seed(seed)

@@ -54,7 +54,7 @@ class MOT16Sequences:
     can be accessed.
     """
 
-    def __init__(self, dataset, root_dir, **kwargs):
+    def __init__(self, dataset: str, root_dir: str, **kwargs):
         """Initialize the corresponding dataloader.
 
         Keyword arguments:
@@ -76,7 +76,7 @@ class MOT16Sequences:
 class MOT16(Dataset):
     """A Wrapper for the MOT_Sequence class to return multiple sequences."""
 
-    def __init__(self, root_dir, split, **kwargs):
+    def __init__(self, root_dir: str, split: str, **kwargs):
         """Initliazes all subset of the dataset.
 
         Keyword arguments:
@@ -133,7 +133,13 @@ class MOT16Sequence(Dataset):
     handled one should inherit from this class.
     """
 
-    def __init__(self, root_dir, seq_name, vis_threshold=0.0, load_seg=False):
+    def __init__(
+        self,
+        root_dir: str,
+        seq_name: str,
+        vis_threshold: float = 0.0,
+        load_seg: bool = False,
+    ):
         """
         Args:
             root_dir -- directory of the dataset
@@ -266,7 +272,7 @@ class MOT16Sequence(Dataset):
     def __str__(self):
         return self._seq_name
 
-    def write_results(self, all_tracks, output_dir):
+    def write_results(self, all_tracks: dict, output_dir: str):
         """Write the tracks in the format for MOT16/MOT17 sumbission
 
         all_tracks: dictionary with 1 dictionary for every track with {..., i:np.array([x1,y1,x2,y2]), ...} at key track_num

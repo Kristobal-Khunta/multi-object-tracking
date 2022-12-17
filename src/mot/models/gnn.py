@@ -139,11 +139,11 @@ class BipartiteNeuralMessagePassingLayer(nn.Module):
 class SimilarityNet(nn.Module):
     def __init__(
         self,
-        node_dim,
-        edge_dim,
-        reid_dim,
-        edges_in_dim,
-        num_steps,
+        node_dim:int,
+        edge_dim:int,
+        reid_dim:int,
+        edges_in_dim:int,
+        num_steps:int,
         dropout=0.0,
     ) -> None:
         super().__init__()

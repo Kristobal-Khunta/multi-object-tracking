@@ -12,6 +12,7 @@ from mot.tracker.base import Tracker
 from mot.utils import cosine_distance
 
 mm.lap.default_solver = "lap"
+from typing import Union
 
 
 class ReIDHungarianTracker(Tracker):
@@ -20,7 +21,7 @@ class ReIDHungarianTracker(Tracker):
 
     """
 
-    def __init__(self, obj_detect, reid_model):
+    def __init__(self, obj_detect: torch.nn.Module, reid_model: torch.nn.Module):
         super().__init__()
         self.obj_detect = obj_detect
         self.reid_model = reid_model
@@ -31,7 +32,7 @@ class ReIDHungarianTracker(Tracker):
         self.mot_accum = None
         self._UNMATCHED_COST = 255.0
 
-    def step(self, frame):
+    def step(self, frame: dict):
         """This function should be called every timestep to perform tracking with a blob
         containing the image information.
         """
@@ -48,7 +49,12 @@ class ReIDHungarianTracker(Tracker):
         self.data_association(boxes, scores, reid_features)
         self.update_results()
 
-    def data_association(self, boxes, scores, pred_features):
+    def data_association(
+        self,
+        boxes: torch.Tensor,
+        scores: torch.Tensor,
+        pred_features: torch.Tensor | list[torch.Tensor],
+    ):
 
         if self.tracks:
             # not needed: track_ids = [t.id for t in self.tracks]
@@ -74,11 +80,11 @@ class ReIDHungarianTracker(Tracker):
 
     def update_tracks(
         self,
-        row_idx,
-        col_idx,
-        distance,
-        boxes,
-        scores,
+        row_idx: np.array,
+        col_idx: np.array,
+        distance: np.array,
+        boxes: torch.Tensor,
+        scores: torch.Tensor,
         pred_features: torch.Tensor | list[torch.Tensor],
     ):
         """
@@ -128,7 +134,13 @@ class ReIDHungarianTracker(Tracker):
 
 
 class LongTermReIDHungarianTracker(ReIDHungarianTracker):
-    def __init__(self, obj_detect, reid_model, patience, **kwargs):
+    def __init__(
+        self,
+        obj_detect: torch.nn.Module,
+        reid_model: torch.nn.Module,
+        patience: int,
+        **kwargs
+    ):
         """Add a patience parameter"""
         super().__init__(obj_detect=obj_detect, reid_model=reid_model, **kwargs)
         self.patience = patience
@@ -159,10 +171,10 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
         boxes: torch.Tensor,
         scores: torch.Tensor,
         pred_features: list[torch.Tensor] | torch.Tensor,
-    )->None:
+    ) -> None:
         """
         Args:
-            row_idx: np.array with shape (num_tracks,) 
+            row_idx: np.array with shape (num_tracks,)
                     array of row indices giving the optimal assignment
             col_idx: array  with shape (num_detections,) of corresponding column indices giving the optimal assignment
             distance: np.array with shape (num_tracks,num_detections)
@@ -217,7 +229,14 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
 
 
 class MPNTracker(LongTermReIDHungarianTracker):
-    def __init__(self, obj_detect, reid_model, similarity_net, patience, **kwargs):
+    def __init__(
+        self,
+        obj_detect: torch.nn.Module,
+        reid_model: torch.nn.Module,
+        similarity_net: torch.nn.Module,
+        patience: int,
+        **kwargs
+    ):
         super().__init__(
             obj_detect=obj_detect, reid_model=reid_model, patience=patience, **kwargs
         )
@@ -232,7 +251,12 @@ class MPNTracker(LongTermReIDHungarianTracker):
         self.results = {}
         self.mot_accum = None
 
-    def data_association(self, boxes, scores, pred_features):  # pred_features
+    def data_association(
+        self,
+        boxes: torch.Tensor,
+        scores: torch.Tensor,
+        pred_features: torch.Tensor | list[torch.Tensor],
+    ):
         if self.tracks:
             track_boxes = torch.stack([t.box for t in self.tracks], axis=0)
             track_features = torch.stack([t.get_feature() for t in self.tracks], axis=0)
