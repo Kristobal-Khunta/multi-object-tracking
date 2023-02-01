@@ -35,11 +35,8 @@ class BaselineTracker(Tracker):
         self.data_association(boxes, scores)
         self.update_results()
 
-    def data_association(
-        self,
-        boxes: torch.Tensor,
-        scores: torch.Tensor,
-    ):
+    # skipcq: PYL-W0221
+    def data_association(self, boxes: torch.Tensor, scores: torch.Tensor):
         """
         Args:
             boxes: torch.Tensor with shape (N,4)
