@@ -108,14 +108,14 @@ class Tracker(abc.ABC):
                 Track(new_boxes[i], new_scores[i], self.track_num + i, new_features[i])
             )
         self.track_num += num_new
-    # skipcq: PYL-W0221
+
     @abc.abstractmethod
     def data_association(
         self,
         boxes: torch.Tensor,
         scores: torch.Tensor,
-        features: Optional[torch.Tensor | list[torch.Tensor]] = None,
-    ):
+        features: Optional[torch.Tensor | list[torch.Tensor]] = None, # skipcq: PYL-W0221
+    ): # skipcq: PYL-W0221
         raise NotImplementedError
 
     @abc.abstractmethod
