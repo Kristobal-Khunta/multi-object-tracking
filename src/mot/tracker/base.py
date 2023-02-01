@@ -114,8 +114,8 @@ class Tracker(abc.ABC):
         self,
         boxes: torch.Tensor,
         scores: torch.Tensor,
-        features: Optional[torch.Tensor | list[torch.Tensor]] = None, # skipcq: PYL-W0221
-    ): # skipcq: PYL-W0221
+        features: Optional[torch.Tensor | list[torch.Tensor]] = None, 
+    ): 
         raise NotImplementedError
 
     @abc.abstractmethod

@@ -73,6 +73,7 @@ class IoUTracker(Tracker):
         self.data_association(boxes, scores)
         self.update_results()
 
+    # skipcq: PYL-W0221
     def data_association(self, boxes: torch.Tensor, scores: torch.Tensor) -> None:
         """
         Args:
@@ -129,6 +130,7 @@ class HungarianIoUTracker(IoUTracker):
         self.mot_accum = None
         self._UNMATCHED_COST = 255.0
 
+    # skipcq: PYL-W0221
     def data_association(self, boxes: torch.Tensor, scores: torch.Tensor) -> None:
         """
         Args:
