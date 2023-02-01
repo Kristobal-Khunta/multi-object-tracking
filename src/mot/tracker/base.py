@@ -3,6 +3,7 @@ import collections
 import motmetrics as mm
 import numpy as np
 import torch
+from typing import Optional
 import abc
 
 mm.lap.default_solver = "lap"
@@ -89,7 +90,7 @@ class Tracker(abc.ABC):
         self,
         new_boxes: torch.Tensor,
         new_scores: torch.Tensor,
-        new_features: list[torch.Tensor],
+        new_features: Optional[list[torch.Tensor]] = None,
     ) -> None:
         """Initializes new Track objects and saves them.
         Args:
@@ -98,7 +99,7 @@ class Tracker(abc.ABC):
             new_features: list with len N,
                           each element reid feature matrix (torch.tensor)
                           with shape depends on reid model
-                          
+
 
         """
         num_new = len(new_boxes)

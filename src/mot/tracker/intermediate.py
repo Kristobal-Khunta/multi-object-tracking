@@ -34,7 +34,9 @@ class BaselineTracker(Tracker):
         self.data_association(boxes, scores)
         self.update_results()
 
-    def data_association(self, boxes: torch.Tensor, scores: torch.Tensor):
+    def data_association(
+        self, boxes: torch.Tensor, scores: torch.Tensor, pred_features: None = None
+    ):
         """
         Args:
             boxes: torch.Tensor with shape (N,4)
