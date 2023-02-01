@@ -13,6 +13,7 @@ class BaselineTracker(Tracker):
     """The main tracking file, here is where magic happens."""
 
     def __init__(self, obj_detect: torch.nn.Module):
+        super().__init__()
         self.obj_detect = obj_detect
         self.tracks = []
         self.track_num = 0
@@ -50,6 +51,7 @@ class BaselineTracker(Tracker):
 
 class IoUTracker(Tracker):
     def __init__(self, obj_detect: torch.nn.Module) -> None:
+        super().__init__()
         self.obj_detect = obj_detect
         self.tracks = []
         self.track_num = 0

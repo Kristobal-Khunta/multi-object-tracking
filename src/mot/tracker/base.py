@@ -108,7 +108,7 @@ class Tracker(abc.ABC):
                 Track(new_boxes[i], new_scores[i], self.track_num + i, new_features[i])
             )
         self.track_num += num_new
-
+    # skipcq: PYL-W0221
     @abc.abstractmethod
     def data_association(
         self,
