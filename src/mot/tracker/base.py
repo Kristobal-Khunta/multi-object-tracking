@@ -110,7 +110,12 @@ class Tracker(abc.ABC):
         self.track_num += num_new
 
     @abc.abstractmethod
-    def data_association(self, boxes, scores, features=None):
+    def data_association(
+        self,
+        boxes: torch.Tensor,
+        scores: torch.Tensor,
+        features: Optional[torch.Tensor | list[torch.Tensor]] = None,
+    ):
         raise NotImplementedError
 
     @abc.abstractmethod

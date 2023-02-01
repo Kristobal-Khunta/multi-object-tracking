@@ -35,7 +35,9 @@ class BaselineTracker(Tracker):
         self.update_results()
 
     def data_association(
-        self, boxes: torch.Tensor, scores: torch.Tensor, pred_features: None = None
+        self,
+        boxes: torch.Tensor,
+        scores: torch.Tensor,
     ):
         """
         Args:
@@ -69,9 +71,7 @@ class IoUTracker(Tracker):
         self.data_association(boxes, scores)
         self.update_results()
 
-    def data_association(
-        self, boxes: torch.Tensor, scores: torch.Tensor, pred_features: None = None
-    ) -> None:
+    def data_association(self, boxes: torch.Tensor, scores: torch.Tensor) -> None:
         """
         Args:
             boxes: torch.Tensor with shape (N,4)
@@ -127,12 +127,7 @@ class HungarianIoUTracker(IoUTracker):
         self.mot_accum = None
         self._UNMATCHED_COST = 255.0
 
-    def data_association(
-        self,
-        boxes: torch.Tensor,
-        scores: torch.Tensor,
-        pred_features: None = None,
-    ) -> None:
+    def data_association(self, boxes: torch.Tensor, scores: torch.Tensor) -> None:
         """
         Args:
             boxes: torch.Tensor with shape (N,4)
