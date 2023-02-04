@@ -225,10 +225,8 @@ def plot_single_tracked_frame(img, img_idx, tracks, styles):
         img_idx (int) corresponding image idx
         tracks (dict) dict with exsiting tracks on every emage
     """
-    # TODO add args
 
-    dpi = 100
-    _, ax = plt.subplots(1, dpi=dpi)
+    _, ax = plt.subplots(1, dpi=100)
     ax.set_axis_off()
     ax.imshow(img)
 

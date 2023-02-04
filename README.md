@@ -26,7 +26,7 @@ detector делает bbox  вокруг людей, трекер сопоста
 
 # Results 
 ### GIF
-![detector result gif](/output/figs/MOT16-02_result.gif)
+![detector result gif](/output/figs/MOT16-02-result.gif)
 
 How to run
 1. train reid net on market data
