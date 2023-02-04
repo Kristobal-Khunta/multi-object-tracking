@@ -134,5 +134,6 @@ MNIST
 /notebooks/colab_version
 *.txt
 *.pth
-*.gif 
+*.gif
+!/output/figs/MOT16-02_result.gif
 *.csv
