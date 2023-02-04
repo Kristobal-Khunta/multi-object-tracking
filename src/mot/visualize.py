@@ -157,7 +157,7 @@ colors = [
 ]
 
 
-def plot_sequence(tracks , dataset, first_n_frames=None, dst_path=None):
+def plot_sequence(tracks, dataset, first_n_frames=None, dst_path=None):
     """Plots a whole sequence
 
     Args:
@@ -218,7 +218,7 @@ def plot_sequence(tracks , dataset, first_n_frames=None, dst_path=None):
 
 
 @gif.frame
-def plot_single_tracked_frame(img, img_idx, tracks):
+def plot_single_tracked_frame(img, img_idx, tracks, styles):
     """
     Args:
         img (np.array) image to plot
@@ -226,11 +226,8 @@ def plot_single_tracked_frame(img, img_idx, tracks):
         tracks (dict) dict with exsiting tracks on every emage
     """
     # TODO add args
-    cyl = cy("ec", colors)
-    loop_cy_iter = cyl()
-    styles = defaultdict(lambda: next(loop_cy_iter))  # skipcq: PTC-W0063
 
-    dpi = 300
+    dpi = 100
     _, ax = plt.subplots(1, dpi=dpi)
     ax.set_axis_off()
     ax.imshow(img)
@@ -266,10 +263,15 @@ def plot_single_tracked_frame(img, img_idx, tracks):
 def collect_frames_for_gif(sequence, tracker_seq_res, first_n_frames=None):
     frames = []
     total_length = first_n_frames if first_n_frames is not None else len(sequence)
+
+    cyl = cy("ec", colors)
+    loop_cy_iter = cyl()
+    styles = defaultdict(lambda: next(loop_cy_iter))  # skipcq: PTC-W0063
+
     for img_idx, data in tqdm(enumerate(sequence), total=total_length):
         img = data["img"].mul(255).permute(1, 2, 0).byte().numpy()
 
-        frame = plot_single_tracked_frame(img, img_idx, tracker_seq_res)
+        frame = plot_single_tracked_frame(img, img_idx, tracker_seq_res, styles)
         frames.append(frame)
         if first_n_frames is not None and first_n_frames - 1 == img_idx:
             break
