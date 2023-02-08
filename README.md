@@ -1,10 +1,8 @@
-
-
 # Overview
 The aim of this project is to explore different approaches to the problem of multiple object tracking through the concept of tracking-by-detection. Different detectors have been implemented (IoU-based, ReID-based, GNN-based) and different track processing techniques have been applied.
 The project is based on lectures and several project assignments from the CV3DST course at the Technical University of Munich.
 
-# data 
+# Data 
 1. The Market dataset was used to train the Reid model
 2. The MOT16 dataset was used to train, evaluate and test trackers
 
@@ -17,16 +15,21 @@ Various approaches to object tracking have been researched and implemented. The 
 4) [LongTermReIDHungarianTracker](notebooks/6.0-mg-LongTermReidTracker.ipynb)
 5) [MPNTracker](notebooks/8.0-mg-tracker-inference.ipynb) - with message passing network (graph neural networks) for prediction refinement
 
-## reid models
+## ReID models
 Several models on the market have been trained for use in trackers, and several interesting features have been implemented from scratch.
 - triplet loss / cosine loss
-- Hard Negative mining 
+- Hard Negative mining  
+[example ipynb](notebooks/4.0-mg-reid-net.ipynb)
 
 ## Graph neural network
-GNN implementation based on neural message passing framework
+GNN implementation based on  message passing framework
+[explanation ipynb](notebooks/7.0-mg-gnn.ipynb)
+
 
 # Results 
-## GIF
+
+## gif with the results of work on the sequences MOT16-02 and MOT16-11
+
 ![MOT16-02 tracker results ](/output/figs/MOT16-02-result.gif) ![MOT16-11 tracker results](/output/figs/MOT16-11-result.gif) 
 
 ## Table results concentrate on IDF1 and MOTA
@@ -61,12 +64,35 @@ GNN implementation based on neural message passing framework
     │   ├── utils.py 
     │   └── visualize.py  
     │               
+    ├── .deepsource.toml
+    ├── .gitattributes
+    ├── .gitignore
     ├── README.md
 
-## How To Use
+## Usage
 
-1. train reid net on market data
-2. train gnn net on crops
-3. use tracker
-
-#  python -m eval_tracker --device='cuda:1' 
+1. Clone the repo
+   ```sh
+   git clone https://github.com/Kristobal-Khunta/multi-object-tracking.git
+   git lfs
+   ```
+2. download datasets and store it in ./data
+- [MOT16 dataset mainpage](https://motchallenge.net/data/MOT16/)
+- [market dataset mainpage](https://zheng-lab.cecs.anu.edu.au/Project/project_reid.html)
+3. Install dependencies
+   ```sh
+   pip install -r requirements.txt
+   ```
+4. eval tracker with prefefined weighs
+    ```sh
+   python -m eval_tracker
+   ```
+## optional:
+- train reid net on market data
+   ```sh
+   python -m train_reid
+   ```
+- train gnn net on crops
+    ```sh
+   python -m train_gnn
+   ```
