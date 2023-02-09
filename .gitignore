@@ -138,3 +138,4 @@ MNIST
 #!/output/figs/MOT16-02-result.gif
 *.csv
 !requirements.txt
+!models/best_ckpt.pth
