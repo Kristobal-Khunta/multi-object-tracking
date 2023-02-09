@@ -10,20 +10,20 @@ The project is based on lectures and several project assignments from the CV3DST
 Various approaches to object tracking have been researched and implemented. The corresponding notebooks contain the motivation behind different tracking approaches, mostly taken from the cv3dst course and its project assignments. As well as the results of the detector and visualisations of the predictions.
 
 1) [IoUTracker](notebooks/2.5-iou-tracker.ipynb ) - 
-2) [HungarianIoUTracker](notebooks/3.0-mg-hungarian_algo.ipynb)
-3) [ReidTracker](notebooks/4.0-mg-reid-net.ipynb)
-4) [LongTermReIDHungarianTracker](notebooks/6.0-mg-LongTermReidTracker.ipynb)
-5) [MPNTracker](notebooks/8.0-mg-tracker-inference.ipynb) - with message passing network (graph neural networks) for prediction refinement
+2) [HungarianIoUTracker](notebooks/3.0-hungarian_algo.ipynb) - implementation of Hungarian algorithm for bbox matching improvement
+3) [ReIDHungarianIoUTracker](notebooks/5.0-appearance-tracker.ipynb) - appearance net(ReID) + IoU(bbox) + hungarian matching 
+4) [LongTermReIDHungarianTracker](notebooks/6.0-mg-LongTermReidTracker.ipynb) - added the ability to restore the track even if the object has been out of frame for a while
+5) [MPNTracker](notebooks/7.0-gnn.ipynb) - Message Passing Network Tracker - a tracker is implemented in which we refine the quality of matching detections with tracks using a graph neural network (based on the message passing framework)
 
 ## ReID models
 Several models on the market have been trained for use in trackers, and several interesting features have been implemented from scratch.
 - triplet loss / cosine loss
 - Hard Negative mining  
-[example ipynb](notebooks/4.0-mg-reid-net.ipynb)
+[example ipynb](notebooks/4.0-reid-net.ipynb)
 
 ## Graph neural network
 GNN implementation based on  message passing framework
-[explanation ipynb](notebooks/7.0-mg-gnn.ipynb)
+[explanation ipynb](notebooks/7.0-gnn.ipynb)
 
 
 # Results 
