@@ -9,10 +9,10 @@ The project is based on lectures and several project assignments from the CV3DST
 # Trackers
 Various approaches to object tracking have been researched and implemented. The corresponding notebooks contain the motivation behind different tracking approaches, mostly taken from the cv3dst course and its project assignments. As well as the results of the detector and visualisations of the predictions.
 
-1) [IoUTracker](notebooks/2.5-iou-tracker.ipynb ) - 
-2) [HungarianIoUTracker](notebooks/3.0-hungarian_algo.ipynb) - implementation of Hungarian algorithm for bbox matching improvement
+1) [IoUTracker](notebooks/2.5-iou-tracker.ipynb ) - baseline tracker based only on matching boxes between the detections of the current frame and the previous frame
+2) [HungarianIoUTracker](notebooks/3.0-hungarian_algo.ipynb)-  implementation of Hungarian algorithm for bbox matching improvement
 3) [ReIDHungarianIoUTracker](notebooks/5.0-appearance-tracker.ipynb) - appearance net(ReID) + IoU(bbox) + hungarian matching 
-4) [LongTermReIDHungarianTracker](notebooks/6.0-mg-LongTermReidTracker.ipynb) - added the ability to restore the track even if the object has been out of frame for a while
+4) [LongTermReIDHungarianTracker](notebooks/6.0-LongTermReidTracker.ipynb) - added the ability to restore the track even if the object has been out of frame for a while
 5) [MPNTracker](notebooks/7.0-gnn.ipynb) - Message Passing Network Tracker - a tracker is implemented in which we refine the quality of matching detections with tracks using a graph neural network (based on the message passing framework)
 
 ## ReID models
