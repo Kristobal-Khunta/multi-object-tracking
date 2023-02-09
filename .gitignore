@@ -133,8 +133,8 @@ MNIST
 /data/data*
 /notebooks/colab_version
 *.txt
-*.pth
-*.model
+data/preprocessed_data/*.pth
+#*.model
 #*.gif
 #!/output/figs/MOT16-02-result.gif
 *.csv
