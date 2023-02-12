@@ -28,9 +28,11 @@ GNN implementation based on  message passing framework
 
 # Results 
 
-## gif with the results of work on the sequences MOT16-02 and MOT16-11
+## Video demos on MOT challenge data
+<img src="output/figs/MOT16-02-result.gif" width="400"/>   <img src="output/figs/MOT16-11-result.gif" width="400"/> 
+<img src="output/figs/MOT16-08-result.gif" width="400"/>   <img src="output/figs/MOT16-01-result.gif" width="400"/> 
 
-![MOT16-02 tracker results ](/output/figs/MOT16-02-result.gif) ![MOT16-11 tracker results](/output/figs/MOT16-11-result.gif) 
+
 
 ## Table results concentrate on IDF1 and MOTA
 
@@ -84,23 +86,24 @@ GNN implementation based on  message passing framework
    pip install -r requirements.txt
    ```
 4. eval tracker with prefefined weighs
-    ```sh
+    ```
    cd src
-   python -m eval_tracker
+   python -m eval_tracker.py
    ```
+
 ## optional:
-- train reid net on market data
-   ```sh
-   cd src
-   python -m train_reid
+train reid net on market data
    ```
-- train gnn net on crops
-    ```sh
-    cd src
-   python -m train_gnn
-   ```
-- To speed up experiments with trackers, you can precompute and save predictions from the detector and ReID features into .pth files
-   ```sh
    cd src
-   python -m infer_data
+   python -m train_reid.py
+   ```
+train gnn net on crops
+   ```
+   cd src
+   python -m train_gnn.py
+   ```
+To speed up experiments with trackers, you can precompute and save predictions from the detector and ReID features into .pth files
+   ```
+   cd src
+   python -m infer_data.py
    ```
