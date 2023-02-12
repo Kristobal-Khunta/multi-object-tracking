@@ -19,7 +19,7 @@ def parse_args():
     """Set up Python's ArgumentParser with data, model, trainer, and other arguments."""
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
-        "--model_type", type=str, default="softmax", choices=["softmax", "triplet"]
+        "--model_type", type=str, default="triplet", choices=["softmax", "triplet"]
     )
 
     parser.add_argument(
