@@ -13,6 +13,7 @@ class BaselineTracker(Tracker):
     """The main tracking file, here is where magic happens."""
 
     def __init__(self, obj_detect: torch.nn.Module):
+        super().__init__()
         self.obj_detect = obj_detect
         self.tracks = []
         self.track_num = 0
@@ -34,6 +35,7 @@ class BaselineTracker(Tracker):
         self.data_association(boxes, scores)
         self.update_results()
 
+    # skipcq: PYL-W0221
     def data_association(self, boxes: torch.Tensor, scores: torch.Tensor):
         """
         Args:
@@ -46,6 +48,7 @@ class BaselineTracker(Tracker):
 
 class IoUTracker(Tracker):
     def __init__(self, obj_detect: torch.nn.Module) -> None:
+        super().__init__()
         self.obj_detect = obj_detect
         self.tracks = []
         self.track_num = 0
@@ -67,6 +70,7 @@ class IoUTracker(Tracker):
         self.data_association(boxes, scores)
         self.update_results()
 
+    # skipcq: PYL-W0221
     def data_association(self, boxes: torch.Tensor, scores: torch.Tensor) -> None:
         """
         Args:
@@ -123,6 +127,7 @@ class HungarianIoUTracker(IoUTracker):
         self.mot_accum = None
         self._UNMATCHED_COST = 255.0
 
+    # skipcq: PYL-W0221
     def data_association(self, boxes: torch.Tensor, scores: torch.Tensor) -> None:
         """
         Args:

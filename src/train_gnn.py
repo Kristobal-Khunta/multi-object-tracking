@@ -20,8 +20,8 @@ mm.lap.default_solver = "lap"
 def parse_args():
     """Set up Python's ArgumentParser with tracker settings and other arguments."""
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--max_epoch", type=int, default=30)
-    parser.add_argument("--eval_freq", type=int, default=1)
+    parser.add_argument("--max_epoch", type=int, default=40)
+    parser.add_argument("--eval_freq", type=int, default=5)
     parser.add_argument("--print_freq", type=int, default=50)
     parser.add_argument("--max_patient", type=int, default=20)
     parser.add_argument("--device", type=str, default="cpu")
@@ -35,7 +35,6 @@ def main():
     args = parse_args()
     set_all_seeds(12347)
 
-    print("parse args1845")
     root_dir = Path(__file__).parent.parent
     root_dir = str(root_dir)
     train_db = torch.load(
@@ -95,14 +94,14 @@ def main():
                 "MOT16-val2", osp.join(root_dir, "data/MOT16"), vis_threshold=0.0
             )
             res, _ = run_tracker(
-                val_sequences, tracker=tracker, db=train_db, output_dir=None
+                val_sequences, tracker=tracker, database=train_db, output_dir=None
             )
             idf1 = res.loc["OVERALL"]["idf1"]
             if idf1 > best_idf1:
                 best_idf1 = idf1
                 torch.save(
                     similarity_net.state_dict(),
-                    osp.join(root_dir, "models", "best_ckpt.pth"),
+                    osp.join(root_dir, "models", "best_mpn_ckpt.pth"),
                 )
 
 

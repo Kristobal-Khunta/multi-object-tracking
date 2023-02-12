@@ -111,6 +111,7 @@ def run_tracker(
     time_total = 0
     mot_accums = []
     results_seq = {}
+    result_mot = None
     for seq in val_sequences:
         tracker.reset()
         now = time.time()
@@ -146,6 +147,7 @@ def run_tracker(
             seq.write_results(results, os.path.join(output_dir))
 
     print(f"Runtime for all sequences: {time_total:.1f} s.")
+
     if mot_accums:
         result_mot = evaluate_mot_accums(
             mot_accums,
