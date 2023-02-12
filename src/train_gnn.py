@@ -20,8 +20,8 @@ mm.lap.default_solver = "lap"
 def parse_args():
     """Set up Python's ArgumentParser with tracker settings and other arguments."""
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--max_epoch", type=int, default=30)
-    parser.add_argument("--eval_freq", type=int, default=1)
+    parser.add_argument("--max_epoch", type=int, default=40)
+    parser.add_argument("--eval_freq", type=int, default=5)
     parser.add_argument("--print_freq", type=int, default=50)
     parser.add_argument("--max_patient", type=int, default=20)
     parser.add_argument("--device", type=str, default="cpu")
