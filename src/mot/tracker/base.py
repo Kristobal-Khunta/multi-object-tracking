@@ -104,8 +104,9 @@ class Tracker(abc.ABC):
         """
         num_new = len(new_boxes)
         for i in range(num_new):
+            new_feat_i = new_features[i] if new_features is not None else None
             self.tracks.append(
-                Track(new_boxes[i], new_scores[i], self.track_num + i, new_features[i])
+                Track(new_boxes[i], new_scores[i], self.track_num + i, new_feat_i)
             )
         self.track_num += num_new
 
@@ -114,8 +115,8 @@ class Tracker(abc.ABC):
         self,
         boxes: torch.Tensor,
         scores: torch.Tensor,
-        features: Optional[torch.Tensor | list[torch.Tensor]] = None, 
-    ): 
+        features: Optional[torch.Tensor | list[torch.Tensor]] = None,
+    ):
         raise NotImplementedError
 
     @abc.abstractmethod

@@ -31,7 +31,7 @@ def compute_iou_reid_distance_matrix(
     )
     appearance_distance = appearance_distance.numpy() * 0.5
 
-    if np.any(appearance_distance <= -0.1) or np.any(appearance_distance <= 1.1):
+    if np.any(appearance_distance <= -0.1) or np.any(appearance_distance >= 1.1):
         raise ValueError("appearance_distance values bust be in [0,1]")
 
     combined_costs = alpha * distance + (1 - alpha) * appearance_distance

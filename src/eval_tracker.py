@@ -74,7 +74,7 @@ def main():
     )
 
     best_ckpt = torch.load(
-        os.path.join(root_dir, "models", "best_ckpt.pth"),
+        os.path.join(root_dir, "models", "best_mpn_ckpt.pth"),
         map_location=lambda storage, loc: storage,
     )
     similarity_net.load_state_dict(best_ckpt)
