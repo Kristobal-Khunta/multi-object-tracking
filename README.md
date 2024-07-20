@@ -91,19 +91,3 @@ GNN implementation based on  message passing framework
    python -m eval_tracker.py
    ```
 
-## optional:
-train reid net on market data
-   ```
-   cd src
-   python -m train_reid.py
-   ```
-train gnn net on crops
-   ```
-   cd src
-   python -m train_gnn.py
-   ```
-To speed up experiments with trackers, you can precompute and save predictions from the detector and ReID features into .pth files
-   ```
-   cd src
-   python -m infer_data.py
-   ```

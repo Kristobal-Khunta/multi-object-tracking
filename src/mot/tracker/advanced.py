@@ -16,10 +16,15 @@ from typing import Union
 
 
 class ReIDHungarianTracker(Tracker):
-    """
-    Use IoU distance and appearance distance
+    """Tracker using IoU distance and appearance distance."""
 
-    """
+    def __init__(self, obj_detect, reid_model):
+        """Initialize the ReIDHungarianTracker.
+
+        Args:
+            obj_detect: Object detection model.
+            reid_model: Re-identification model.
+        """
 
     def __init__(self, obj_detect: torch.nn.Module, reid_model: torch.nn.Module):
         super().__init__()
@@ -32,11 +37,12 @@ class ReIDHungarianTracker(Tracker):
         self.mot_accum = None
         self._UNMATCHED_COST = 255.0
 
-    def step(self, frame: dict):
-        """This function should be called every timestep to perform tracking with a blob
-        containing the image information.
-        """
+    def step(self, frame):
+        """Perform tracking for a single frame.
 
+        Args:
+            frame: Dictionary containing image information.
+        """
         if self.obj_detect and self.reid_model:
             boxes, scores = self.obj_detect.detect(frame["img"])
             crops = get_crop_from_boxes(boxes, frame["img"])
@@ -49,13 +55,14 @@ class ReIDHungarianTracker(Tracker):
         self.data_association(boxes, scores, reid_features)
         self.update_results()
 
-    def data_association(
-        self,
-        boxes: torch.Tensor,
-        scores: torch.Tensor,
-        pred_features: torch.Tensor | list[torch.Tensor],
-    ):
+    def data_association(self, boxes, scores, pred_features):
+        """Perform data association between tracks and detections.
 
+        Args:
+            boxes: Bounding boxes of detections.
+            scores: Confidence scores of detections.
+            pred_features: Re-identification features of detections.
+        """
         if self.tracks:
             # not needed: track_ids = [t.id for t in self.tracks]
             track_boxes = torch.stack([t.box for t in self.tracks], axis=0)
@@ -75,30 +82,24 @@ class ReIDHungarianTracker(Tracker):
             self.update_tracks(row_idx, col_idx, distance, boxes, scores, pred_features)
 
         else:
-            # No tracks exist.
             self.add(boxes, scores, pred_features)
 
-    def update_tracks(
-        self,
-        row_idx: np.array,
-        col_idx: np.array,
-        distance: np.array,
-        boxes: torch.Tensor,
-        scores: torch.Tensor,
-        pred_features: torch.Tensor | list[torch.Tensor],
-    ):
-        """
+    def update_tracks(self, row_idx, col_idx, distance, boxes, scores, pred_features):
+        """Update existing tracks and add new ones.
+
         Args:
-            row_idx: array of row indices giving the optimal assignment
-            col_idx: array of corresponding column indices giving the optimal assignment
-            distance: np.arrayThe cost matrix of the bipartite graph.
-            boxes: torch.Tensor with shape (N,4)
-            scores: torch.Tensor with shape (N,)
-            pred_features:  torch.Tensor with shape (N, num_features)
-        """
+            row_idx: Row indices from linear assignment.
+            col_idx: Column indices from linear assignment.
+            distance: Distance matrix.
+            boxes: Bounding boxes of detections.
+            scores: Confidence scores of detections.
+            pred_features: Re-identification features of detections.
+        Example:
+
         # row_idx and col_idx are indices into track_boxes and boxes.
         # row_idx[i] and col_idx[i] define a match.
         # distance[row_idx[i], col_idx[i]] define the cost for that matching.
+        """
         track_ids = [t.id for t in self.tracks]
 
         remove_track_ids = []
@@ -134,14 +135,18 @@ class ReIDHungarianTracker(Tracker):
 
 
 class LongTermReIDHungarianTracker(ReIDHungarianTracker):
-    def __init__(
-        self,
-        obj_detect: torch.nn.Module,
-        reid_model: torch.nn.Module,
-        patience: int,
-        **kwargs
-    ):
-        """Add a patience parameter"""
+    """Long-term tracker with patience for track termination."""
+
+    def __init__(self, obj_detect, reid_model, patience, **kwargs):
+        """Initialize the LongTermReIDHungarianTracker.
+
+        Args:
+            obj_detect: Object detection model.
+            reid_model: Re-identification model.
+            patience: Number of frames to wait before terminating a track.
+            **kwargs: Additional keyword arguments.
+        """
+
         super().__init__(obj_detect=obj_detect, reid_model=reid_model, **kwargs)
         self.patience = patience
         self.tracks = []
@@ -152,7 +157,7 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
         self._UNMATCHED_COST = 255.0
 
     def update_results(self):
-        """Only store boxes for tracks that are active"""
+        """Update tracking results for active tracks."""
         for t in self.tracks:
             if t.id not in self.results:
                 self.results[t.id] = {}
@@ -163,25 +168,17 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
 
         self.im_index += 1
 
-    def update_tracks(
-        self,
-        row_idx: np.array,
-        col_idx: np.array,
-        distance: np.array,
-        boxes: torch.Tensor,
-        scores: torch.Tensor,
-        pred_features: list[torch.Tensor] | torch.Tensor,
-    ) -> None:
-        """
+    def update_tracks(self, row_idx, col_idx, distance, boxes, scores, pred_features):
+        """Update existing tracks and handle inactive tracks.
+
         Args:
-            row_idx: np.array with shape (num_tracks,)
-                    array of row indices giving the optimal assignment
-            col_idx: array  with shape (num_detections,) of corresponding column indices giving the optimal assignment
-            distance: np.array with shape (num_tracks,num_detections)
-                    The cost matrix of the bipartite graph.
-            boxes: torch.Tensor with shape (N,4)
-            scores: torch.Tensor with shape (N,)
-            pred_features:  torch.Tensor with shape (N, num_features)
+            row_idx: Row indices from linear assignment.
+            col_idx: Column indices from linear assignment.
+            distance: Distance matrix.
+            boxes: Bounding boxes of detections.
+            scores: Confidence scores of detections.
+            pred_features: Re-identification features of detections.
+
         """
         track_ids = [t.id for t in self.tracks]
 
@@ -213,11 +210,11 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
         active_tracks = []
         for t in self.tracks:
             if t.id not in unmatched_track_ids:
-                active_tracks.append(t)  # <-- Needs to be updated
+                active_tracks.append(t)  
             elif t.inactive < self.patience:
                 active_tracks.append(t)
                 t.inactive += 1
-            else:  #
+            else:
                 continue
         self.tracks = active_tracks
 
@@ -229,6 +226,8 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
 
 
 class MPNTracker(LongTermReIDHungarianTracker):
+    """Tracker using Message Passing Networks for data association."""
+
     def __init__(
         self,
         obj_detect: torch.nn.Module,
@@ -237,6 +236,16 @@ class MPNTracker(LongTermReIDHungarianTracker):
         patience: int,
         **kwargs
     ):
+        """Initialize the MPNTracker.
+
+        Args:
+            obj_detect: Object detection model.
+            reid_model: Re-identification model.
+            similarity_net: Similarity network for data association.
+            patience: Number of frames to wait before terminating a track.
+            device: Device to run computations on.
+            **kwargs: Additional keyword arguments.
+        """
         super().__init__(
             obj_detect=obj_detect, reid_model=reid_model, patience=patience, **kwargs
         )
@@ -251,12 +260,15 @@ class MPNTracker(LongTermReIDHungarianTracker):
         self.results = {}
         self.mot_accum = None
 
-    def data_association(
-        self,
-        boxes: torch.Tensor,
-        scores: torch.Tensor,
-        pred_features: torch.Tensor | list[torch.Tensor],
-    ):
+    def data_association(self, boxes, scores, pred_features):
+        """Perform data association using Message Passing Networks.
+
+        Args:
+            boxes: Bounding boxes of detections.
+            scores: Confidence scores of detections.
+            pred_features: Re-identification features of detections.
+        """
+
         if self.tracks:
             track_boxes = torch.stack([t.box for t in self.tracks], axis=0)
             track_features = torch.stack([t.get_feature() for t in self.tracks], axis=0)
