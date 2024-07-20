@@ -1,6 +1,5 @@
 import unittest
 import torch
-import numpy as np
 from src.mot.tracker.advanced import AdvancedTracker
 
 

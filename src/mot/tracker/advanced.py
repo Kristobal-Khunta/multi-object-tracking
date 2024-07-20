@@ -18,15 +18,13 @@ from typing import Union
 class ReIDHungarianTracker(Tracker):
     """Tracker using IoU distance and appearance distance."""
 
-    def __init__(self, obj_detect, reid_model):
+    def __init__(self, obj_detect: torch.nn.Module, reid_model: torch.nn.Module):
         """Initialize the ReIDHungarianTracker.
 
         Args:
             obj_detect: Object detection model.
             reid_model: Re-identification model.
         """
-
-    def __init__(self, obj_detect: torch.nn.Module, reid_model: torch.nn.Module):
         super().__init__()
         self.obj_detect = obj_detect
         self.reid_model = reid_model
@@ -210,7 +208,7 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
         active_tracks = []
         for t in self.tracks:
             if t.id not in unmatched_track_ids:
-                active_tracks.append(t)  
+                active_tracks.append(t)
             elif t.inactive < self.patience:
                 active_tracks.append(t)
                 t.inactive += 1
@@ -246,9 +244,7 @@ class MPNTracker(LongTermReIDHungarianTracker):
             device: Device to run computations on.
             **kwargs: Additional keyword arguments.
         """
-        super().__init__(
-            obj_detect=obj_detect, reid_model=reid_model, patience=patience, **kwargs
-        )
+        super().__init__(obj_detect=obj_detect, reid_model=reid_model, patience=patience, **kwargs)
         ## Tracker mainly work with cpu bboxes
         self.similarity_net = similarity_net
         self.device = list(similarity_net.parameters())[0].device
@@ -275,9 +271,7 @@ class MPNTracker(LongTermReIDHungarianTracker):
 
             # Hacky way to recover the timestamps of boxes and tracks
             curr_t = self.im_index * torch.ones((pred_features.shape[0],))
-            track_t = torch.as_tensor(
-                [self.im_index - t.inactive - 1 for t in self.tracks]
-            )
+            track_t = torch.as_tensor([self.im_index - t.inactive - 1 for t in self.tracks])
 
             # Do a forward pass through self.assign_net to obtain our costs.
 

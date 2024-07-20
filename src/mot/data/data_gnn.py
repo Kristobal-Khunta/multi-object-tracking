@@ -94,7 +94,7 @@ class LongTrackTrainingDataset(Dataset):
 
         aug_boxes = torch.stack((aug_x0, aug_y0, aug_x1, aug_y1)).T
 
-        # return aug_boxes, ids, vis, embeddings
+        # maybe ext return aug_boxes, ids, vis, embeddings
         return aug_boxes, keep
 
     # skipcq: PYL-R0201
@@ -105,10 +105,7 @@ class LongTrackTrainingDataset(Dataset):
             for idx, id_ in enumerate(frame_data["ids"]):
                 final_data[id_.item()] = {
                     "time": t_step,
-                    **{
-                        key: frame_data[key][idx]
-                        for key in ("vis", "boxes", "features")
-                    },
+                    **{key: frame_data[key][idx] for key in ("vis", "boxes", "features")},
                 }
 
         all_ids = list(final_data.keys())
@@ -116,9 +113,7 @@ class LongTrackTrainingDataset(Dataset):
         return {
             "ids": torch.as_tensor(all_ids),
             "time": torch.as_tensor([final_data[id_]["time"] for id_ in all_ids]),
-            "boxes": torch.as_tensor(
-                torch.stack([final_data[id_]["boxes"] for id_ in all_ids])
-            ),
+            "boxes": torch.as_tensor(torch.stack([final_data[id_]["boxes"] for id_ in all_ids])),
             "features": torch.stack([final_data[id_]["features"] for id_ in all_ids]),
         }
 
@@ -130,14 +125,10 @@ class LongTrackTrainingDataset(Dataset):
 
         curr_frame = seq_db[frame_ix]["gt"]
         first_past_frame = max(frame_ix - self.max_past_frames - 1, 0)
-        past_frames = [
-            seq_db[frame_ix_]["gt"] for frame_ix_ in range(first_past_frame, frame_ix)
-        ]
+        past_frames = [seq_db[frame_ix_]["gt"] for frame_ix_ in range(first_past_frame, frame_ix)]
 
         curr_frame_data = self.prepare_data(curr_frame, seq)
-        past_frame_datum = [
-            self.prepare_data(past_frame, seq) for past_frame in past_frames
-        ]
+        past_frame_datum = [self.prepare_data(past_frame, seq) for past_frame in past_frames]
 
         past_frame_data = self.merge_frame_data(past_frame_datum, first_past_frame)
         curr_frame_data["time"] = frame_ix * torch.ones_like(curr_frame_data["ids"])
