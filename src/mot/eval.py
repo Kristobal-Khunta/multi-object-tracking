@@ -4,10 +4,11 @@ import numpy as np
 import torch
 from tqdm.auto import tqdm
 import time
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
+from mot.tracker.base import Tracker
 
 
-def get_mot_accum(results, seq):
+def get_mot_accum(results: dict, seq: list[dict, int]) -> mm.MOTAccumulator:
     mot_accum = mm.MOTAccumulator(auto_id=True)
 
     for i in range(len(seq)):
@@ -63,7 +64,9 @@ def get_mot_accum(results, seq):
     return mot_accum
 
 
-def evaluate_mot_accums(accums, names, generate_overall=False):
+def evaluate_mot_accums(
+    accums: mm.MOTAccumulator, names: list, generate_overall: bool = False
+):
     mh = mm.metrics.create()
     summary = mh.compute_many(
         accums,
@@ -81,13 +84,12 @@ def evaluate_mot_accums(accums, names, generate_overall=False):
     return summary
 
 
-def evaluate_obj_detect(model, data_loader):
+def evaluate_obj_detect(model: torch.nn.Module, data_loader: DataLoader) -> None:
     model.eval()
     device = list(model.parameters())[0].device
     results = {}
     for imgs, targets in tqdm(data_loader):
         imgs = [img.to(device) for img in imgs]
-
         with torch.no_grad():
             preds = model(imgs)
 
@@ -100,18 +102,31 @@ def evaluate_obj_detect(model, data_loader):
     data_loader.dataset.print_eval(results)
 
 
-def run_tracker(val_sequences, db, tracker, output_dir=None):
+def run_tracker(
+    val_sequences: Dataset,
+    tracker: Tracker,
+    database: dict | None = None,
+    output_dir: str | None = None,
+) -> tuple:
     time_total = 0
     mot_accums = []
     results_seq = {}
+    result_mot = None
     for seq in val_sequences:
         tracker.reset()
         now = time.time()
 
         print(f"Tracking: {seq}")
 
+        if database is None:
+            data_loader = DataLoader(seq, batch_size=1, shuffle=False)
+            frame_seq_iterator = tqdm(data_loader)
+
+        if database is not None:
+            frame_seq_iterator = database[str(seq)]
+
         with torch.no_grad():
-            for frame in db[str(seq)]:
+            for frame in frame_seq_iterator:
                 tracker.step(frame)
 
         results = tracker.get_results()
@@ -132,50 +147,11 @@ def run_tracker(val_sequences, db, tracker, output_dir=None):
             seq.write_results(results, os.path.join(output_dir))
 
     print(f"Runtime for all sequences: {time_total:.1f} s.")
+
     if mot_accums:
-        return evaluate_mot_accums(
+        result_mot = evaluate_mot_accums(
             mot_accums,
             [str(s) for s in val_sequences if not s.no_gt],
             generate_overall=True,
         )
-
-
-def run_tracker_raw_seq(sequences, tracker, output_dir=None):
-    time_total = 0
-    mot_accums = []
-    results_seq = {}
-    for seq in sequences:
-        tracker.reset()
-        now = time.time()
-
-        print(f"Tracking: {seq}")
-
-        data_loader = DataLoader(seq, batch_size=1, shuffle=False)
-        with torch.no_grad():
-            for frame in tqdm(data_loader):
-                tracker.step(frame)
-        results = tracker.get_results()
-        results_seq[str(seq)] = results
-
-        if seq.no_gt:
-            print("No GT evaluation data available.")
-        else:
-            mot_accums.append(get_mot_accum(results, seq))
-
-        time_total += time.time() - now
-
-        print(f"Tracks found: {len(results)}")
-        print(f"Runtime for {seq}: {time.time() - now:.1f} s.")
-
-        if output_dir is not None:
-            os.makedirs(output_dir, exist_ok=True)
-            seq.write_results(results, os.path.join(output_dir))
-
-    print(f"Runtime for all sequences: {time_total:.1f} s.")
-    if mot_accums:
-        evaluate_mot_accums(
-            mot_accums,
-            [str(s) for s in sequences if not s.no_gt],
-            generate_overall=True,
-        )
-    return results_seq
+    return result_mot, results_seq

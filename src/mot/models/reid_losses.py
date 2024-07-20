@@ -10,16 +10,17 @@ class HardBatchMiningTripletLoss(torch.nn.Module):
         margin (float, optional): margin for triplet. Default is 0.3.
     """
 
-    def __init__(self, margin=0.3):
+    def __init__(self, margin: float = 0.3):
         super(HardBatchMiningTripletLoss, self).__init__()
         self.margin = margin
         self.ranking_loss = torch.nn.MarginRankingLoss(margin=margin)
 
-    def forward(self, inputs, targets):
+    def forward(self, inputs: torch.Tensor, targets: torch.Tensor):
         """
         Args:
             inputs (torch.Tensor): feature matrix with shape (batch_size, feat_dim).
             targets (torch.LongTensor): ground truth labels with shape (batch_size).
+
         """
         n = inputs.size(0)
 
@@ -59,14 +60,29 @@ class HardBatchMiningTripletLoss(torch.nn.Module):
 
 
 class CombinedLoss:
-    def __init__(self, margin=0.3, weight_triplet=1.0, weight_ce=1.0):
+    def __init__(
+        self, margin: float = 0.3, weight_triplet: float = 1.0, weight_ce: float = 1.0
+    ):
         super(CombinedLoss, self).__init__()
         self.triplet_loss = HardBatchMiningTripletLoss(margin)
         self.cross_entropy = torch.nn.CrossEntropyLoss()
         self.weight_triplet = weight_triplet
         self.weight_ce = weight_ce
 
-    def __call__(self, logits, features, gt_pids):
+    def __call__(
+        self, logits: torch.Tensor, features: torch.Tensor, gt_pids: torch.Tensor
+    ):
+        """
+        Args:
+            logits (torch.Tensor): predictions logits with shape (batch_size)
+            features (torch.Tensor): feature matrix with shape (batch_size, feat_dim).
+            gt_pids (torch.LongTensor): ground truth labels with shape (batch_size).
+        Returns:
+            tuple(
+                loss: scalar final combined loss
+                loss_summary: dict with different parts of the loss
+            )
+        """
         loss = 0.0
         loss_summary = {}
         if self.weight_triplet > 0.0:

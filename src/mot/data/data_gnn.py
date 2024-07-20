@@ -5,15 +5,14 @@ from .data_track import MOT16Sequences
 
 
 class LongTrackTrainingDataset(Dataset):
-    # TODO: More past frames
     def __init__(
         self,
-        dataset,
-        db,
-        root_dir,
-        vis_threshold=0.2,
-        box_distort_perc=0.05,
-        max_past_frames=10,
+        dataset: str,
+        db: dict,  # or torch.structure saved through torch.save
+        root_dir: str,
+        vis_threshold: float = 0.2,
+        box_distort_perc: float = 0.05,
+        max_past_frames: int = 10,
     ):
         self.sequences = MOT16Sequences(dataset, root_dir, vis_threshold=0)
         self.db = db
@@ -44,7 +43,7 @@ class LongTrackTrainingDataset(Dataset):
     def __len__(self):
         return len(self.seq_frames)
 
-    def prepare_data(self, blob, seq):
+    def prepare_data(self, blob: dict, seq: str):
         # if we want use raw sequences instead predefined database
         # -> blob = curr_frame['gt']
         # -> ids = torch.as_tensor(list(blob['gt'].keys()))
@@ -68,7 +67,7 @@ class LongTrackTrainingDataset(Dataset):
             "features": features[keep],
         }
 
-    def augment(self, boxes):
+    def augment(self, boxes: torch.Tensor):
         """Wiggle boxes coordinates and randomly drop boxes"""
 
         keep = torch.rand(boxes.shape[0]) > 0.1
@@ -98,7 +97,8 @@ class LongTrackTrainingDataset(Dataset):
         # return aug_boxes, ids, vis, embeddings
         return aug_boxes, keep
 
-    def merge_frame_data(self, past_frame_data, first_past_frame):  # skipcq: PYL-R0201
+    # skipcq: PYL-R0201
+    def merge_frame_data(self, past_frame_data: dict, first_past_frame: dict) -> dict:
         """Only keep the last appearance for every ID"""
         final_data = {}
         for t_step, frame_data in enumerate(past_frame_data, first_past_frame):

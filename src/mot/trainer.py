@@ -5,8 +5,10 @@ from torch.nn import functional as F
 
 @torch.no_grad()
 def compute_class_metric(
-    pred, target, class_metrics=("accuracy", "recall", "precision")
-):
+    pred: torch.Tensor,
+    target: torch.Tensor,
+    class_metrics: tuple[str] = ("accuracy", "recall", "precision"),
+) -> dict[str, list]:
     TP = ((target == 1) & (pred == 1)).sum().float()
     FP = ((target == 0) & (pred == 1)).sum().float()
     TN = ((target == 0) & (pred == 0)).sum().float()
@@ -29,54 +31,59 @@ def compute_class_metric(
 
 
 def train_one_epoch(
-    model, data_loader, optimizer, _unused_accum_batches=1, print_freq=200
-):
+    model: torch.nn.Module,
+    data_loader: torch.utils.data.DataLoader,
+    optimizer: torch.optim,
+    device: str = "cpu",
+    _unused_accum_batches: int = 1,
+    print_freq: int = 200,
+) -> None:
     model.train()
-    device = next(model.parameters()).device  # skipcq: PTC-W0063
+    model = model.to(device)
     metrics_accum = {"loss": 0.0, "accuracy": 0.0, "recall": 0.0, "precision": 0.0}
     for i, batch in tqdm.tqdm(enumerate(data_loader)):
         optimizer.zero_grad()
 
         # Since our model does not support automatic batching, we do manual
         # gradient accumulation
-        for sample in batch:
-            past_frame, curr_frame = sample
-            track_feats, track_coords, track_ids = (
-                past_frame["features"].to(device),
-                past_frame["boxes"].to(device),
-                past_frame["ids"].to(device),
-            )
-            current_feats, current_coords, curr_ids = (
-                curr_frame["features"].to(device),
-                curr_frame["boxes"].to(device),
-                curr_frame["ids"].to(device),
-            )
-            track_t, curr_t = past_frame["time"].to(device), curr_frame["time"].to(
-                device
-            )
+        for past_frame, curr_frame in batch:
 
-            similar_net = model.forward(
+            ### previous frame features
+            track_feats = past_frame["features"].to(device)
+            track_coords = past_frame["boxes"].to(device)
+            track_ids = past_frame["ids"].to(device)
+
+            # current frame features
+            current_feats = curr_frame["features"].to(device)
+            current_coords = curr_frame["boxes"].to(device)
+            curr_ids = curr_frame["ids"].to(device)
+
+            # time feats
+            track_t = past_frame["time"].to(device)
+            curr_t = curr_frame["time"].to(device)
+
+            assign_sim = model.forward(
                 track_app=track_feats,
-                current_app=current_feats.to(device),
-                track_coords=track_coords.to(device),
-                current_coords=current_coords.to(device),
+                current_app=current_feats,
+                track_coords=track_coords,
+                current_coords=current_coords,
                 track_t=track_t,
                 curr_t=curr_t,
             )
 
             same_id = (track_ids.view(-1, 1) == curr_ids.view(1, -1)).type(
-                similar_net.dtype
+                assign_sim.dtype
             )
-            same_id = same_id.unsqueeze(0).expand(similar_net.shape[0], -1, -1)
+            same_id = same_id.unsqueeze(0).expand(assign_sim.shape[0], -1, -1)
 
             loss = F.binary_cross_entropy_with_logits(
-                similar_net, same_id, pos_weight=torch.as_tensor(20.0)
+                assign_sim, same_id, pos_weight=torch.as_tensor(20.0)
             ) / float(len(batch))
             loss.backward()
 
             # Keep track of metrics
             with torch.no_grad():
-                pred = (similar_net[-1] > 0.5).view(-1).float()
+                pred = (assign_sim[-1] > 0.5).view(-1).float()
                 target = same_id[-1].view(-1)
                 metrics = compute_class_metric(pred, target)
 
@@ -91,7 +98,7 @@ def train_one_epoch(
                     for m_name, m_val in metrics_accum.items()
                 ]
             )
-            print(f"Iter {i + 1}. " + log_str)
+            print(f"Iter {i + 1}. {log_str}")
             metrics_accum = {
                 "loss": 0.0,
                 "accuracy": 0.0,

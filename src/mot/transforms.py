@@ -3,6 +3,11 @@ from torchvision.transforms import functional as F
 
 
 def obj_detect_transforms(train):
+    """
+    Set transforms for object detection network
+    Args:
+        train (bool): flag if train transforms needed or val transforms
+    """
     transforms = []
     # converts the image, a PIL image, into a PyTorch Tensor
     transforms.append(ToTensor())

@@ -1,17 +1,18 @@
-import torch
 import motmetrics as mm
 import numpy as np
-
-from mot.tracker.base import Tracker
-from mot.utils import (
-    cosine_distance,
-    get_crop_from_boxes,
-    compute_reid_features,
-    compute_iou_reid_distance_matrix,
-)
+import torch
 from scipy.optimize import linear_sum_assignment as linear_assignment
 
+from mot.models.reid import (
+    compute_iou_reid_distance_matrix,
+    compute_reid_features,
+    get_crop_from_boxes,
+)
+from mot.tracker.base import Tracker
+from mot.utils import cosine_distance
+
 mm.lap.default_solver = "lap"
+from typing import Union
 
 
 class ReIDHungarianTracker(Tracker):
@@ -24,6 +25,8 @@ class ReIDHungarianTracker(Tracker):
             obj_detect: Object detection model.
             reid_model: Re-identification model.
         """
+
+    def __init__(self, obj_detect: torch.nn.Module, reid_model: torch.nn.Module):
         super().__init__()
         self.obj_detect = obj_detect
         self.reid_model = reid_model
@@ -42,7 +45,7 @@ class ReIDHungarianTracker(Tracker):
         """
         if self.obj_detect and self.reid_model:
             boxes, scores = self.obj_detect.detect(frame["img"])
-            crops = get_crop_from_boxes(boxes, frame)
+            crops = get_crop_from_boxes(boxes, frame["img"])
             reid_features = compute_reid_features(self.reid_model, crops).cpu().clone()
         else:
             boxes = frame["det"]["boxes"]
@@ -92,6 +95,7 @@ class ReIDHungarianTracker(Tracker):
             scores: Confidence scores of detections.
             pred_features: Re-identification features of detections.
         Example:
+
         # row_idx and col_idx are indices into track_boxes and boxes.
         # row_idx[i] and col_idx[i] define a match.
         # distance[row_idx[i], col_idx[i]] define the cost for that matching.
@@ -142,6 +146,7 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
             patience: Number of frames to wait before terminating a track.
             **kwargs: Additional keyword arguments.
         """
+
         super().__init__(obj_detect=obj_detect, reid_model=reid_model, **kwargs)
         self.patience = patience
         self.tracks = []
@@ -173,6 +178,7 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
             boxes: Bounding boxes of detections.
             scores: Confidence scores of detections.
             pred_features: Re-identification features of detections.
+
         """
         track_ids = [t.id for t in self.tracks]
 
@@ -223,7 +229,12 @@ class MPNTracker(LongTermReIDHungarianTracker):
     """Tracker using Message Passing Networks for data association."""
 
     def __init__(
-        self, obj_detect, reid_model, similarity_net, patience, device="cuda", **kwargs
+        self,
+        obj_detect: torch.nn.Module,
+        reid_model: torch.nn.Module,
+        similarity_net: torch.nn.Module,
+        patience: int,
+        **kwargs
     ):
         """Initialize the MPNTracker.
 
@@ -238,8 +249,10 @@ class MPNTracker(LongTermReIDHungarianTracker):
         super().__init__(
             obj_detect=obj_detect, reid_model=reid_model, patience=patience, **kwargs
         )
+        ## Tracker mainly work with cpu bboxes
         self.similarity_net = similarity_net
-        self.device = device
+        self.device = list(similarity_net.parameters())[0].device
+        ## eval features with similarity net based on its device
         self._UNMATCHED_COST = 255.0
         self.tracks = []
         self.track_num = 0
@@ -255,37 +268,33 @@ class MPNTracker(LongTermReIDHungarianTracker):
             scores: Confidence scores of detections.
             pred_features: Re-identification features of detections.
         """
+
         if self.tracks:
-            track_boxes = torch.stack([t.box for t in self.tracks], axis=0).to(
-                self.device
-            )
-            track_features = torch.stack(
-                [t.get_feature() for t in self.tracks], axis=0
-            ).to(self.device)
+            track_boxes = torch.stack([t.box for t in self.tracks], axis=0)
+            track_features = torch.stack([t.get_feature() for t in self.tracks], axis=0)
 
             # Hacky way to recover the timestamps of boxes and tracks
-            curr_t = self.im_index * torch.ones((pred_features.shape[0],)).to(
-                self.device
-            )
+            curr_t = self.im_index * torch.ones((pred_features.shape[0],))
             track_t = torch.as_tensor(
                 [self.im_index - t.inactive - 1 for t in self.tracks]
-            ).to(self.device)
+            )
 
             # Do a forward pass through self.assign_net to obtain our costs.
+
             edges_raw_logits = self.similarity_net(
                 track_features.to(self.device),
                 pred_features.to(self.device),
                 track_boxes.to(self.device),
                 boxes.to(self.device),
-                track_t,
-                curr_t,
+                track_t.to(self.device),
+                curr_t.to(self.device),
             )
-            # Note: self.assign_net will return unnormalized probabilities.
+            edges_raw_logits = edges_raw_logits.detach().cpu()
+            # Note: self.similarity_net will return unnormalized probabilities.
             # apply the sigmoid function to them!
-            pred_sim = torch.sigmoid(edges_raw_logits).detach().cpu().numpy()
+            pred_sim = torch.sigmoid(edges_raw_logits).numpy()
             pred_sim = pred_sim[-1]  # Use predictions at last message passing step
             distance = 1 - pred_sim
-            # print(pred_sim)
             # Do not allow mataches when sim < 0.5, to avoid low-confident associations
             distance = np.where(pred_sim < 0.5, self._UNMATCHED_COST, distance)
 
