@@ -15,11 +15,15 @@ mm.lap.default_solver = "lap"
 
 
 class ReIDHungarianTracker(Tracker):
-    """
-    Use IoU distance and appearance distance 
-    
-    """
+    """Tracker using IoU distance and appearance distance."""
+
     def __init__(self, obj_detect, reid_model):
+        """Initialize the ReIDHungarianTracker.
+
+        Args:
+            obj_detect: Object detection model.
+            reid_model: Re-identification model.
+        """
         super().__init__()
         self.obj_detect = obj_detect
         self.reid_model = reid_model
@@ -31,10 +35,11 @@ class ReIDHungarianTracker(Tracker):
         self._UNMATCHED_COST = 255.0
 
     def step(self, frame):
-        """This function should be called every timestep to perform tracking with a blob
-        containing the image information.
-        """
+        """Perform tracking for a single frame.
 
+        Args:
+            frame: Dictionary containing image information.
+        """
         if self.obj_detect and self.reid_model:
             boxes, scores = self.obj_detect.detect(frame["img"])
             crops = get_crop_from_boxes(boxes, frame)
@@ -48,7 +53,13 @@ class ReIDHungarianTracker(Tracker):
         self.update_results()
 
     def data_association(self, boxes, scores, pred_features):
+        """Perform data association between tracks and detections.
 
+        Args:
+            boxes: Bounding boxes of detections.
+            scores: Confidence scores of detections.
+            pred_features: Re-identification features of detections.
+        """
         if self.tracks:
             # not needed: track_ids = [t.id for t in self.tracks]
             track_boxes = torch.stack([t.box for t in self.tracks], axis=0)
@@ -68,13 +79,23 @@ class ReIDHungarianTracker(Tracker):
             self.update_tracks(row_idx, col_idx, distance, boxes, scores, pred_features)
 
         else:
-            # No tracks exist.
             self.add(boxes, scores, pred_features)
 
     def update_tracks(self, row_idx, col_idx, distance, boxes, scores, pred_features):
+        """Update existing tracks and add new ones.
+
+        Args:
+            row_idx: Row indices from linear assignment.
+            col_idx: Column indices from linear assignment.
+            distance: Distance matrix.
+            boxes: Bounding boxes of detections.
+            scores: Confidence scores of detections.
+            pred_features: Re-identification features of detections.
+        Example:
         # row_idx and col_idx are indices into track_boxes and boxes.
         # row_idx[i] and col_idx[i] define a match.
         # distance[row_idx[i], col_idx[i]] define the cost for that matching.
+        """
         track_ids = [t.id for t in self.tracks]
 
         remove_track_ids = []
@@ -110,8 +131,17 @@ class ReIDHungarianTracker(Tracker):
 
 
 class LongTermReIDHungarianTracker(ReIDHungarianTracker):
+    """Long-term tracker with patience for track termination."""
+
     def __init__(self, obj_detect, reid_model, patience, **kwargs):
-        """Add a patience parameter"""
+        """Initialize the LongTermReIDHungarianTracker.
+
+        Args:
+            obj_detect: Object detection model.
+            reid_model: Re-identification model.
+            patience: Number of frames to wait before terminating a track.
+            **kwargs: Additional keyword arguments.
+        """
         super().__init__(obj_detect=obj_detect, reid_model=reid_model, **kwargs)
         self.patience = patience
         self.tracks = []
@@ -122,7 +152,7 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
         self._UNMATCHED_COST = 255.0
 
     def update_results(self):
-        """Only store boxes for tracks that are active"""
+        """Update tracking results for active tracks."""
         for t in self.tracks:
             if t.id not in self.results:
                 self.results[t.id] = {}
@@ -134,6 +164,16 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
         self.im_index += 1
 
     def update_tracks(self, row_idx, col_idx, distance, boxes, scores, pred_features):
+        """Update existing tracks and handle inactive tracks.
+
+        Args:
+            row_idx: Row indices from linear assignment.
+            col_idx: Column indices from linear assignment.
+            distance: Distance matrix.
+            boxes: Bounding boxes of detections.
+            scores: Confidence scores of detections.
+            pred_features: Re-identification features of detections.
+        """
         track_ids = [t.id for t in self.tracks]
 
         unmatched_track_ids = []
@@ -164,11 +204,11 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
         active_tracks = []
         for t in self.tracks:
             if t.id not in unmatched_track_ids:
-                active_tracks.append(t)  # <-- Needs to be updated
+                active_tracks.append(t)  
             elif t.inactive < self.patience:
                 active_tracks.append(t)
                 t.inactive += 1
-            else:  #
+            else:
                 continue
         self.tracks = active_tracks
 
@@ -180,9 +220,21 @@ class LongTermReIDHungarianTracker(ReIDHungarianTracker):
 
 
 class MPNTracker(LongTermReIDHungarianTracker):
+    """Tracker using Message Passing Networks for data association."""
+
     def __init__(
         self, obj_detect, reid_model, similarity_net, patience, device="cuda", **kwargs
     ):
+        """Initialize the MPNTracker.
+
+        Args:
+            obj_detect: Object detection model.
+            reid_model: Re-identification model.
+            similarity_net: Similarity network for data association.
+            patience: Number of frames to wait before terminating a track.
+            device: Device to run computations on.
+            **kwargs: Additional keyword arguments.
+        """
         super().__init__(
             obj_detect=obj_detect, reid_model=reid_model, patience=patience, **kwargs
         )
@@ -195,8 +247,14 @@ class MPNTracker(LongTermReIDHungarianTracker):
         self.results = {}
         self.mot_accum = None
 
-    def data_association(self, boxes, scores, pred_features):  # pred_features
+    def data_association(self, boxes, scores, pred_features):
+        """Perform data association using Message Passing Networks.
 
+        Args:
+            boxes: Bounding boxes of detections.
+            scores: Confidence scores of detections.
+            pred_features: Re-identification features of detections.
+        """
         if self.tracks:
             track_boxes = torch.stack([t.box for t in self.tracks], axis=0).to(
                 self.device
